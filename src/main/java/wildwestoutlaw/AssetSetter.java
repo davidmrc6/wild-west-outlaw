@@ -14,6 +14,7 @@ public class AssetSetter {
     
     GamePanel gp;
     public int spawnCounter = 0;
+    private Timer monsterTimer;
 
     public AssetSetter(GamePanel gp) {
         this.gp = gp;
@@ -38,8 +39,18 @@ public class AssetSetter {
         gp.npc[3].worldY = gp.worldHeight / 2 + 2 * gp.tileSize;
     }
 
+    // Stops a wave that is still spawning, e.g. when the game restarts
+    public void cancelSpawning() {
+        if (monsterTimer != null) {
+            monsterTimer.cancel();
+            monsterTimer = null;
+        }
+    }
+
     public void setMonster(int numOfMonsters) {
+        cancelSpawning();
         Timer timer = new Timer();
+        monsterTimer = timer;
         Random rand = new Random(); // Create a Random object for generating random numbers
     
         timer.schedule(new TimerTask() {

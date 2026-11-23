@@ -90,8 +90,6 @@ public class Entity {
     public boolean hasGameJustStarted = true;
     public boolean hasDialogue = false;
     public boolean doesCollectCoins = false;
-    public int npcCoins = 0;
-    public int maxNpcCoins = 1;
     public String dialogues[] = new String[20];
 
     public Entity(GamePanel gp) {
@@ -206,11 +204,6 @@ public class Entity {
                     g2.fillRect(screenX, screenY - 10, (int)hpBarValue, 4);
                 }
 
-                if (dying == true) {
-                    dying = false;
-                    alive = false;
-                }
-
                 g2.drawImage(image, screenX, screenY, gp.tileSize, gp.tileSize, null);
             }
 
@@ -228,12 +221,9 @@ public class Entity {
         gp.collisionChecker.checkEntityCollision(this, gp.monster);
         gp.collisionChecker.checkEntityCollision(this, gp.npc);
 
-        if (this.type == 2 && contactPlayer == true) { 
-            if (gp.player.invincible == false) {
-                gp.player.life --;
-                gp.player.invincible = true;
-            }
-        } 
+        if (this.type == 2 && contactPlayer == true) {
+            gp.player.takeDamage(attack);
+        }
     }
 
     public void update() {

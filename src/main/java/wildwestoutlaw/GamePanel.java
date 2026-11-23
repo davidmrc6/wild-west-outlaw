@@ -44,7 +44,9 @@ public class GamePanel extends Main implements Runnable {
     AssetSetter aSetter = new AssetSetter(this);
     public KeyHandler keyH = new KeyHandler(this);
     Thread gameThread;
-    public Sound sound = new Sound();
+    public Sound music = new Sound();
+    public Sound se = new Sound();
+    private volatile boolean restartRequested = false;
 
     int worldX, worldY;
     public CollisionChecker collisionChecker = new CollisionChecker(this);
@@ -77,7 +79,7 @@ public class GamePanel extends Main implements Runnable {
     
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
-        this.setBackground(Color.white);
+        this.setBackground(Color.decode("#eeca84")); // sand colour around the edges of the map
         this.setDoubleBuffered(true);
         this.addKeyListener(keyH);
         this.setFocusable(true);
@@ -90,21 +92,37 @@ public class GamePanel extends Main implements Runnable {
         tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
         g2 = (Graphics2D) tempScreen.getGraphics();
         gameState = titleState;
-
-        //playMusic(0);
     }
 
-    public void restart() {
+    // Called from the key handler. The restart itself happens on the game thread at the start of
+    // the next update, so it never changes the game while that thread is updating or drawing it.
+    public void requestRestart() {
+        restartRequested = true;
+    }
 
-        player.setDefaultPosition();
-        player.restoreLife();
+    private void restart() {
+
+        player.reset();
+        aSetter.cancelSpawning();
         aSetter.setNPC();
         clearMonsters();
         monsterSpawning = false;
         spawnTimer = 180;
+        projectileList.clear();
+        objectList.clear();
+        explosionList.clear();
+        damageEffectList.clear();
+        keyH.releaseAll();
+        ui.commandNum = 0;
         ui.hasGameOverSoundPlayed = false;
-        ui.hasGameOverSoundPlayed = false;
-        stopMusic();
+        ui.hasGameWonSoundPlayed = false;
+
+        // "Retry" starts the music over, going back to the title screen stops it
+        if (gameState == playState) {
+            playMusic(0);
+        } else {
+            stopMusic();
+        }
     }
 
     public void startGameThread() {
@@ -167,7 +185,7 @@ public class GamePanel extends Main implements Runnable {
         if (monsterSpawning == true) {
             if (allMonstersDead() == true) {
                 if (spawnTimer <= 0) {
-                    aSetter.setMonster((int)(player.wanted));
+                    aSetter.setMonster(player.wanted);
                     spawnTimer = 450; // Reset the timer to the initial value
                 } else {
                     spawnTimer--;
@@ -181,7 +199,12 @@ public class GamePanel extends Main implements Runnable {
 
     public void update() {
 
-        if (player.reputation == player.maxReputation && allMonstersDead() == true) {
+        if (restartRequested) {
+            restartRequested = false;
+            restart();
+        }
+
+        if (player.reputation >= player.maxReputation && allMonstersDead()) {
             gameState = gameWonState;
         }
 
@@ -196,6 +219,12 @@ public class GamePanel extends Main implements Runnable {
                     worldX = monster[i].worldX;
                     worldY = monster[i].worldY;
 
+                    // A monster that was killed dies here, even if it is off-screen
+                    if (monster[i].dying == true) {
+                        monster[i].dying = false;
+                        monster[i].alive = false;
+                    }
+
                     if (monster[i].alive == true && monster[i].dying == false) {
                         monster[i].update();
                     }
@@ -205,7 +234,7 @@ public class GamePanel extends Main implements Runnable {
                         monster[i].damaged = false;
                     }
                     if (monster[i].alive == false) {
-                        if (player.wanted <= player.maxWanted)
+                        if (player.wanted < player.maxWanted)
                             player.wanted ++;
                         monster[i] = null;
                         explosionList.add(new Explosion(this, worldX, worldY));
@@ -227,16 +256,12 @@ public class GamePanel extends Main implements Runnable {
                 }
             }
 
-            for (int i = 0; i < projectileList.size(); i++) {
-                if (projectileList.get(i) != null) {
-                    if (projectileList.get(i).alive == true) {
-                        projectileList.get(i).update();
-                    }
-                    if (projectileList.get(i).alive == false) {
-                        projectileList.remove(i);
-                    }
+            for (Entity projectile : projectileList) {
+                if (projectile.alive == true) {
+                    projectile.update();
                 }
             }
+            projectileList.removeIf(projectile -> projectile.alive == false);
 
             List<SuperObject> toRemove = new ArrayList<>();
             for (SuperObject object : objectList) {
@@ -267,9 +292,6 @@ public class GamePanel extends Main implements Runnable {
                     iterator1.remove();
                 }
             }
-        }
-
-        if (gameState == pauseState) {
         }
     }
 
@@ -337,20 +359,26 @@ public class GamePanel extends Main implements Runnable {
         g.dispose();
     }
 
+    // Music and sound effects use separate Sound objects, so stopping the music never stops
+    // a sound effect instead (and starting the music twice doesn't play two copies of it)
     public void playMusic(int i) {
-
-        sound.setFile(i);
-        sound.play();
-        sound.loop();
+        synchronized (music) {
+            music.stop();
+            music.setFile(i);
+            music.loop();
+        }
     }
 
     public void stopMusic() {
-        sound.stop();
+        synchronized (music) {
+            music.stop();
+        }
     }
 
     public void playSE(int i) {
-        
-        sound.setFile(i);
-        sound.play();
+        synchronized (se) {
+            se.setFile(i);
+            se.play();
+        }
     }
 }

@@ -1,6 +1,5 @@
 package wildwestoutlaw;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 
@@ -28,12 +27,10 @@ public class Main extends JPanel {
         window.setExtendedState(JFrame.MAXIMIZED_BOTH);
         window.setTitle("Wild West Outlaw");
         GamePanel gamePanel = new GamePanel();
-        gamePanel.setBackground(Color.decode("#eeca84"));
         window.add(gamePanel);
         window.setLocationRelativeTo(null);
         window.setVisible(true);
 
-        gamePanel.setupGame();
         gamePanel.startGameThread();
 
     }

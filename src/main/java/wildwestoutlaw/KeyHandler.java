@@ -114,11 +114,11 @@ public class KeyHandler implements KeyListener {
                 gp.playSE(13);
                 if (gp.ui.commandNum == 0) {
                     gp.gameState = gp.playState;
-                    gp.restart();
+                    gp.requestRestart();
                 }
                 else if (gp.ui.commandNum == 1) {
                     gp.gameState = gp.titleState;
-                    gp.restart();
+                    gp.requestRestart();
                 }
             }
         }
@@ -129,7 +129,7 @@ public class KeyHandler implements KeyListener {
             if (code == KeyEvent.VK_ENTER) {
                 gp.playSE(13);
                 gp.gameState = gp.titleState;
-                gp.restart();
+                gp.requestRestart();
             }
         }
 
@@ -168,5 +168,15 @@ public class KeyHandler implements KeyListener {
             enterPressed = false;
         }
 
+    }
+
+    // Forgets every held key, e.g. when the game restarts
+    public void releaseAll() {
+        upPressed = false;
+        downPressed = false;
+        leftPressed = false;
+        rightPressed = false;
+        spacePressed = false;
+        enterPressed = false;
     }
 }

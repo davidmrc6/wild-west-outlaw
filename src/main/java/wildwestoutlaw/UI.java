@@ -255,9 +255,9 @@ public class UI {
         g2.setColor(Color.white);
         g2.drawString(text, x - 4, y - 4);
 
-        if (hasGameOverSoundPlayed == false) {
+        if (hasGameWonSoundPlayed == false) {
             gp.playSE(6);
-            hasGameOverSoundPlayed = true;
+            hasGameWonSoundPlayed = true;
         }
 
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 60F));

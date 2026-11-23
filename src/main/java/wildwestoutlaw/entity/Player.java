@@ -71,11 +71,20 @@ public class Player extends Entity {
         projectile = new OBJ_bullet(gp);
     }
 
-    public void restoreLife() {
+    // Puts the player back in the state they start a new game in
+    public void reset() {
+        setDefaultPosition();
+        direction = "down";
+        isIdle = true;
+        isShooting = false;
         life = maxLife;
         reputation = 0;
         wanted = 0;
         coins = 0;
+        invincible = false;
+        invincibleCounter = 0;
+        shotAvailableCounter = 0;
+        projectile.alive = false;
     }
     
     public void getPlayerImage() {
@@ -967,12 +976,12 @@ public class Player extends Entity {
                 gp.npc[i].speak();
                 gp.playSE(4);
             }
-            if (gp.npc[i].doesCollectCoins == true && gp.npc[i].npcCoins == 0 && coins > 0) {
+            // Coins only buy reputation until it is maxed out, so it can't overshoot the win condition
+            if (gp.npc[i].doesCollectCoins == true && coins > 0 && reputation < maxReputation) {
                 gp.playSE(2);
                 gp.npc[i].coins += 1;
                 coins --;
                 reputation += 1;
-                System.out.println("reputation " + reputation);
             }
 
         }
@@ -993,13 +1002,19 @@ public class Player extends Entity {
     public void contactMonster(int i) {
 
         if (i != 999) {
-            if (invincible == false) {
-                life -= gp.monster[i].attack;
-                invincible = true;
-                gp.playSE(8);
-            }
+            takeDamage(gp.monster[i].attack);
         }
 
+    }
+
+    // Used both when the player walks into a monster and when a monster walks into the player
+    public void takeDamage(int damage) {
+
+        if (invincible == false) {
+            life -= damage;
+            invincible = true;
+            gp.playSE(8);
+        }
     }
 
     public void damageMonster(int i, int attack) {

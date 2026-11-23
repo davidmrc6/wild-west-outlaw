@@ -36,6 +36,7 @@ public class CollisionChecker {
                 if ((tileA.hitbox.intersects(entity.solidArea) || (tileB.hitbox.intersects(entity.solidArea))) && (tileA.collision == true || tileB.collision == true)) {
                     entity.collisionOn = true;
                 }
+                break;
             case "down":
                 entityBottomRow = (entityBottomWorldY + entity.speed) / gp.tileSize;
                 tileNum1 = gp.tileCollision.mapTileNum[entityLeftCol][entityBottomRow];
