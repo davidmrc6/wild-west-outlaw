@@ -55,7 +55,7 @@ public class WaveSpawner {
             } else {
                 waveTimer--;
                 if (waveTimer == 1) {
-                    gp.playSE(11); // warning just before the next wave
+                    gp.playSE(SoundEffect.WAVE_WARNING); // warning just before the next wave
                 }
             }
         }

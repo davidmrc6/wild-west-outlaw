@@ -1,22 +1,11 @@
 package wildwestoutlaw;
 
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.BasicStroke;
 import java.awt.RenderingHints;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.imageio.ImageIO;
-
-import wildwestoutlaw.object.OBJ_coin;
-import wildwestoutlaw.object.OBJ_heart;
-import wildwestoutlaw.object.OBJ_reputation;
-import wildwestoutlaw.object.OBJ_star;
-import wildwestoutlaw.object.SuperObject;
 
 public class UI {
 
@@ -40,37 +29,25 @@ public class UI {
     public UI(GamePanel gp) {
         this.gp = gp;
 
-        try {
-            InputStream inputS = getClass().getResourceAsStream("/font/Carnevalee Freakshow.ttf");
-            Carnevalee = Font.createFont(Font.TRUETYPE_FONT, inputS);
-            inputS = getClass().getResourceAsStream("/font/PixeloidSansBold-PKnYd.ttf");
-            pixeloid = Font.createFont(Font.TRUETYPE_FONT, inputS);
-        } catch (FontFormatException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Carnevalee = Assets.font("/font/Carnevalee Freakshow.ttf");
+        pixeloid = Assets.font("/font/PixeloidSansBold-PKnYd.ttf");
 
-        // Create HUD object
-        SuperObject heart = new OBJ_heart(gp);
-        heart_full = heart.images[0];
-        heart_3o4 = heart.images[1];
-        heart_2o4 = heart.images[2];
-        heart_1o4 = heart.images[3];
-        heart_0o4 = heart.images[4];
+        // HUD images
+        heart_full = Assets.image("/hud/hearts/heart full.png", gp.tileSize);
+        heart_3o4 = Assets.image("/hud/hearts/heart 3o4.png", gp.tileSize);
+        heart_2o4 = Assets.image("/hud/hearts/heart 2o4.png", gp.tileSize);
+        heart_1o4 = Assets.image("/hud/hearts/heart 1o4.png", gp.tileSize);
+        heart_0o4 = Assets.image("/hud/hearts/heart 0o4.png", gp.tileSize);
 
-        SuperObject star = new OBJ_star(gp);
-        star_full = star.images[0];
-        star_half = star.images[1];
-        star_empty = star.images[2];
+        star_full = Assets.image("/hud/stars/star_full.png", gp.tileSize);
+        star_half = Assets.image("/hud/stars/star_half.png", gp.tileSize);
+        star_empty = Assets.image("/hud/stars/star_empty.png", gp.tileSize);
 
-        SuperObject reputation = new OBJ_reputation(gp);
-        reputation_full = reputation.images[0];
-        reputation_half = reputation.images[1];
-        reputation_empty = reputation.images[2];
+        reputation_full = Assets.image("/hud/reputation/reputation_full.png", gp.tileSize);
+        reputation_half = Assets.image("/hud/reputation/reputation_half.png", gp.tileSize);
+        reputation_empty = Assets.image("/hud/reputation/reputation_empty.png", gp.tileSize);
 
-        SuperObject coin = new OBJ_coin(gp);
-        coin_img = coin.images[0];
+        coin_img = Assets.image("/hud/coins/coin.png", gp.tileSize);
 
         getKeyImages();
     }
@@ -195,14 +172,10 @@ public class UI {
     }
 
     public void getKeyImages() {
-        try {
-            W_key = ImageIO.read(getClass().getResourceAsStream("/hud/keys/Wkey.png"));
-            A_key = ImageIO.read(getClass().getResourceAsStream("/hud/keys/Akey.png"));
-            S_key = ImageIO.read(getClass().getResourceAsStream("/hud/keys/Skey.png"));
-            D_key = ImageIO.read(getClass().getResourceAsStream("/hud/keys/Dkey.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        W_key = Assets.image("/hud/keys/Wkey.png");
+        A_key = Assets.image("/hud/keys/Akey.png");
+        S_key = Assets.image("/hud/keys/Skey.png");
+        D_key = Assets.image("/hud/keys/Dkey.png");
     }
 
     // The title screen only changes when the menu cursor moves, so each version of it is drawn once and
@@ -252,10 +225,10 @@ public class UI {
 
         x = gp.screenWidth / 2 - gp.tileSize * 8;
         y += gp.tileSize * 2;
-        g2.drawImage(gp.player.down1, x, y, gp.tileSize * 8, gp.tileSize * 8, null);
+        g2.drawImage(gp.player.frontSprite(), x, y, gp.tileSize * 8, gp.tileSize * 8, null);
 
         x = gp.screenWidth / 2 + gp.tileSize * 1;
-        g2.drawImage(gp.npc[0].down1, x, y, gp.tileSize * 8, gp.tileSize * 8, null);
+        g2.drawImage(gp.npc[0].frontSprite(), x, y, gp.tileSize * 8, gp.tileSize * 8, null);
 
         // MENU
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 60F));
@@ -300,7 +273,7 @@ public class UI {
         g2.drawString(text, x - 4, y - 4);
 
         if (hasGameWonSoundPlayed == false) {
-            gp.playSE(6);
+            gp.playSE(SoundEffect.GAME_WON);
             hasGameWonSoundPlayed = true;
         }
 
@@ -358,7 +331,7 @@ public class UI {
         }
 
         if (hasGameOverSoundPlayed == false) {
-            gp.playSE(5);
+            gp.playSE(SoundEffect.GAME_OVER);
             hasGameOverSoundPlayed = true;
         }
     }

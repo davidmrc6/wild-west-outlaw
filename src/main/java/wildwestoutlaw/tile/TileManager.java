@@ -1,7 +1,6 @@
 package wildwestoutlaw.tile;
 
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -11,10 +10,8 @@ import java.io.InputStreamReader;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
-import javax.imageio.ImageIO;
-
+import wildwestoutlaw.Assets;
 import wildwestoutlaw.GamePanel;
-import wildwestoutlaw.UtilityTool;
 
 public class TileManager {
     
@@ -38,39 +35,27 @@ public class TileManager {
     public void getTileImage() {
         setup (0, "empty_tile", false, 0, 0, 32, 32);
         setup (1, "empty_tile", true, 0, 0, 32, 32);
-        try {
-            BufferedImage hitboxes = ImageIO.read(getClass().getResourceAsStream("/environment/MAIN.png"));
-            BufferedImage originalImage = ImageIO.read(getClass().getResourceAsStream("/environment/Background.png"));
-            Image scaledBackground = originalImage.getScaledInstance(gp.worldWidth, gp.worldHeight, Image.SCALE_DEFAULT);
-            Image scaledHitboxes = hitboxes.getScaledInstance(gp.worldWidth, gp.worldHeight, Image.SCALE_DEFAULT);
-            // The finished map is fully opaque, so no alpha channel (much faster to draw)
-            backgroundImage = new BufferedImage(gp.worldWidth, gp.worldHeight, BufferedImage.TYPE_INT_RGB);
-            // try {
-            // writeHitboxes("/tile/hitboxes.txt", hitboxes);
-            // } catch (IOException e) {
-            // e.printStackTrace();
-            // }        
-            Graphics2D g2d = backgroundImage.createGraphics();
-            g2d.drawImage(scaledBackground, 0, 0, null);
-            g2d.drawImage(scaledHitboxes, 0, 0, null);
-            g2d.dispose();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        BufferedImage hitboxes = Assets.image("/environment/MAIN.png");
+        BufferedImage originalImage = Assets.image("/environment/Background.png");
+        // The finished map is fully opaque, so no alpha channel (much faster to draw)
+        backgroundImage = new BufferedImage(gp.worldWidth, gp.worldHeight, BufferedImage.TYPE_INT_RGB);
+        // try {
+        // writeHitboxes("/tile/hitboxes.txt", hitboxes);
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+        Graphics2D g2d = backgroundImage.createGraphics();
+        g2d.drawImage(originalImage, 0, 0, gp.worldWidth, gp.worldHeight, null);
+        g2d.drawImage(hitboxes, 0, 0, gp.worldWidth, gp.worldHeight, null);
+        g2d.dispose();
     }
 
     public void setup (int index, String imageName, boolean collision, int x, int y, int width, int height) {
-        UtilityTool uTool = new UtilityTool();
-        try {
-            tile[index] = new Tile();
-            tile[index].image = ImageIO.read(getClass().getResourceAsStream("/environment/" + imageName + ".png"));
-            tile[index].image = uTool.scaleImage(tile[index].image, gp.tileSize, gp.tileSize);
-            tile[index].collision = collision;
-            tile[index].hitbox = new Rectangle(x, y, width, height);
-            tile[index].visible = hasVisiblePixels(tile[index].image);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        tile[index] = new Tile();
+        tile[index].image = Assets.image("/environment/" + imageName + ".png", gp.tileSize);
+        tile[index].collision = collision;
+        tile[index].hitbox = new Rectangle(x, y, width, height);
+        tile[index].visible = hasVisiblePixels(tile[index].image);
     }
 
     // True if the image has at least one pixel that isn't fully transparent

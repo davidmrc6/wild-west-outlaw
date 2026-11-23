@@ -3,8 +3,6 @@ package wildwestoutlaw.entity;
 import wildwestoutlaw.GamePanel;
 
 import java.awt.Rectangle;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import java.util.Random;
 
 public class NPC_bartender extends Entity {
@@ -31,23 +29,16 @@ public class NPC_bartender extends Entity {
         worldX = gp.worldWidth / 2 - gp.tileSize / 2;
         worldY = gp.worldHeight / 2 - gp.tileSize / 2;
         speed = 2;
-        direction = "down";
-        isIdle = true;
+        direction = Direction.DOWN;
         type = 1;
         hasDialogue = true;
     }
 
     public void getNPCImage() {
-        try {
-
-            right1 = ImageIO.read(getClass().getResourceAsStream("/npc/barman R.png"));
-            left1 = ImageIO.read(getClass().getResourceAsStream("/npc/barman L.png"));
-            up1 = ImageIO.read(getClass().getResourceAsStream("/npc/barman back.png"));
-            down1 = ImageIO.read(getClass().getResourceAsStream("/npc/barman front.png"));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        sprites.put(Direction.RIGHT, still("/npc/barman R.png"));
+        sprites.put(Direction.LEFT, still("/npc/barman L.png"));
+        sprites.put(Direction.UP, still("/npc/barman back.png"));
+        sprites.put(Direction.DOWN, still("/npc/barman front.png"));
     }
 
     public void setDialogue() {
@@ -71,13 +62,13 @@ public class NPC_bartender extends Entity {
             int i = random.nextInt(100) + 1;
 
             if (i <= 25)
-                direction = "up";
+                direction = Direction.UP;
             if (i > 25 && i <= 100)
-                direction = "down";
+                direction = Direction.DOWN;
             if (i > 50 && i <= 75)
-                direction = "left";
+                direction = Direction.LEFT;
             if (i > 75 && i <= 100)
-                direction = "right";
+                direction = Direction.RIGHT;
 
             actionLockCounter = 0;
         }
@@ -93,11 +84,10 @@ public class NPC_bartender extends Entity {
         dialogueIndex++;
 
         switch (gp.player.direction) {
-            case "up", "upleft", "upright": direction = "down"; break;
-            case "down", "downleft", "downright": direction = "up"; break;
-            case "left": direction = "right"; break;
-            case "right": direction = "left"; break;
-
+            case UP, UP_LEFT, UP_RIGHT -> direction = Direction.DOWN;
+            case DOWN, DOWN_LEFT, DOWN_RIGHT -> direction = Direction.UP;
+            case LEFT -> direction = Direction.RIGHT;
+            case RIGHT -> direction = Direction.LEFT;
         }
 
         if (dialogueIndex == 8 && hasGameJustStarted == true) {

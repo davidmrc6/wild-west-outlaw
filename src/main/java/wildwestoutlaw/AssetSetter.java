@@ -7,6 +7,8 @@ import wildwestoutlaw.entity.NPC_farmer;
 import wildwestoutlaw.entity.NPC_female;
 import wildwestoutlaw.entity.MON_cactus;
 import wildwestoutlaw.entity.MON_coyote;
+import wildwestoutlaw.object.DamageEffect;
+import wildwestoutlaw.object.Explosion;
 
 public class AssetSetter {
 
@@ -15,6 +17,14 @@ public class AssetSetter {
 
     public AssetSetter(GamePanel gp) {
         this.gp = gp;
+    }
+
+    // Loads the monster and effect images at startup instead of on the first spawn, hit or kill
+    public void preload() {
+        new MON_cactus(gp);
+        new MON_coyote(gp);
+        new Explosion(gp, 0, 0);
+        new DamageEffect(gp, gp.player);
     }
 
     public void setNPC() {
