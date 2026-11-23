@@ -43,7 +43,7 @@ public class DebugOverlay {
             }
         }
         for (Entity npc : gp.npc) {
-            if (npc != null) {
+            if (npc != null && npc.isSolid()) {
                 outline(g2, npc.worldHitbox(), Color.CYAN, offsetX, offsetY);
             }
         }

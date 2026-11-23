@@ -8,6 +8,7 @@ import wildwestoutlaw.entity.Bartender;
 import wildwestoutlaw.entity.Monster;
 import wildwestoutlaw.entity.MonsterType;
 import wildwestoutlaw.entity.Townsperson;
+import wildwestoutlaw.object.Coin;
 import wildwestoutlaw.object.DamageEffect;
 import wildwestoutlaw.object.Explosion;
 
@@ -19,6 +20,7 @@ public class AssetSetter {
         {41, 13}, {6, 22}, {41, 25}, {9, 30}, {40, 30}
     };
     private static final int MIN_SPAWN_DISTANCE = 10; // tiles away from the player, when possible
+    private static final int COYOTE_CHANCE = 30; // percent of the monsters that are coyotes
 
     GamePanel gp;
     private final Random rand = new Random();
@@ -33,24 +35,26 @@ public class AssetSetter {
         new Monster(gp, MonsterType.COYOTE);
         new Explosion(gp, 0, 0);
         new DamageEffect(gp, gp.player);
+        new Coin(gp);
     }
 
+    // Everyone has a home spot to wander around, and a door (column, row of the tile in front of it) to hide behind
     public void setNPC() {
         gp.npc[0] = new Bartender(gp);
-        gp.npc[0].worldX = gp.worldWidth / 2 - gp.tileSize / 2 + gp.tileSize;
-        gp.npc[0].worldY = gp.worldHeight - (gp.tileSize * 8) - gp.tileSize / 2;
+        gp.npc[0].placeAt(gp.worldWidth / 2 - gp.tileSize / 2 + gp.tileSize, gp.worldHeight - (gp.tileSize * 8) - gp.tileSize / 2);
+        gp.npc[0].setDoor(22, 29); // the saloon
 
-        gp.npc[1] = new Townsperson(gp, "farmer front", "farmer back", "farmerNPC left", "farmerNPC right");
-        gp.npc[1].worldX = gp.worldWidth - gp.tileSize * 10;
-        gp.npc[1].worldY = gp.worldHeight / 2 + 2 * gp.tileSize;
+        gp.npc[1] = Townsperson.farmer(gp);
+        gp.npc[1].placeAt(gp.worldWidth - gp.tileSize * 10, gp.worldHeight / 2 + 2 * gp.tileSize);
+        gp.npc[1].setDoor(38, 20);
 
-        gp.npc[2] = new Townsperson(gp, "femaleNPC front", "femaleNPC back", "femaleNPC left", "femaleNPC right");
-        gp.npc[2].worldX = 7 * gp.tileSize;
-        gp.npc[2].worldY = gp.worldHeight - (gp.tileSize * 8) - gp.tileSize / 4;
+        gp.npc[2] = Townsperson.neighbour(gp);
+        gp.npc[2].placeAt(7 * gp.tileSize, gp.worldHeight - (gp.tileSize * 8) - gp.tileSize / 4);
+        gp.npc[2].setDoor(11, 29);
 
-        gp.npc[3] = new Townsperson(gp, "femaleNPC front", "femaleNPC back", "femaleNPC left", "femaleNPC right");
-        gp.npc[3].worldX = gp.worldWidth / 2 - 6 * gp.tileSize;
-        gp.npc[3].worldY = gp.worldHeight / 2 + 2 * gp.tileSize;
+        gp.npc[3] = Townsperson.hotelOwner(gp);
+        gp.npc[3].placeAt(gp.worldWidth / 2 - 6 * gp.tileSize, gp.worldHeight / 2 + 2 * gp.tileSize);
+        gp.npc[3].setDoor(18, 20); // the hotel
     }
 
     // Puts one new monster in the first free slot. Returns false if there is no room right now.
@@ -67,8 +71,7 @@ public class AssetSetter {
             return false;
         }
 
-        // Generate a random number between 0 and 74: below 10 it's a coyote, otherwise a cactus
-        MonsterType type = rand.nextInt(75) < 10 ? MonsterType.COYOTE : MonsterType.CACTUS;
+        MonsterType type = rand.nextInt(100) < COYOTE_CHANCE ? MonsterType.COYOTE : MonsterType.CACTUS;
 
         Monster monster = new Monster(gp, type);
         monster.worldX = point[0] * gp.tileSize;

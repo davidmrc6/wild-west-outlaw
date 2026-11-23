@@ -3,6 +3,7 @@ package wildwestoutlaw;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.awt.Graphics;
@@ -13,7 +14,9 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
 
+import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import wildwestoutlaw.ai.PathFinder;
 import wildwestoutlaw.entity.Entity;
@@ -188,6 +191,8 @@ public class GamePanel extends JPanel implements Runnable {
             gameState = GameState.GAME_WON;
         }
 
+        sound.setWalking(gameState == GameState.PLAY && !player.isIdle);
+
         if (gameState == GameState.PLAY) {
 
             player.update();
@@ -304,7 +309,10 @@ public class GamePanel extends JPanel implements Runnable {
                     entityList.add(projectileList.get(i));
             }
 
-            // Draw entities
+            entityList.add(player);
+
+            // Draw entities from back to front, so whoever is lower on screen is in front
+            entityList.sort(Comparator.comparingInt(entity -> entity.worldY));
             for (int i = 0; i < entityList.size(); i++)
                 entityList.get(i).draw(g2);
 
@@ -318,10 +326,6 @@ public class GamePanel extends JPanel implements Runnable {
             for (Explosion explosion : explosionList) {
                 explosion.draw(g2);
             }
-
-
-            // PLAYER
-            player.draw(g2);
 
             if (showHitboxes) {
                 DebugOverlay.draw(g2, this);
@@ -354,6 +358,28 @@ public class GamePanel extends JPanel implements Runnable {
             g2d.drawImage(tempScreen, x, y, width, height, null);
         }
         Toolkit.getDefaultToolkit().sync(); // smoother animation on Linux
+    }
+
+    // F11: switches between a normal window and borderless fullscreen
+    public void toggleFullScreen() {
+        SwingUtilities.invokeLater(() -> {
+            JFrame window = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (window == null) {
+                return;
+            }
+            boolean goFullScreen = !window.isUndecorated();
+            window.dispose(); // the border can only be changed while the window is hidden
+            window.setUndecorated(goFullScreen);
+            if (goFullScreen) {
+                window.setBounds(window.getGraphicsConfiguration().getBounds());
+            } else {
+                window.setSize(getPreferredSize());
+                window.setLocationRelativeTo(null);
+                window.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            }
+            window.setVisible(true);
+            requestFocusInWindow();
+        });
     }
 
     public void playMusic() {

@@ -1,6 +1,6 @@
 package wildwestoutlaw;
 
-// Sends the monsters in waves (wanted level = wave size), one monster per second
+// Sends the monsters in waves that grow with the wanted level, one monster per second
 public class WaveSpawner {
 
     private static final int FIRST_WAVE_DELAY = 180; // frames (3 seconds)
@@ -48,7 +48,7 @@ public class WaveSpawner {
         // Wait for the wave to be cleared, then count down to the next one
         if (gp.allMonstersDead()) {
             if (waveTimer <= 0) {
-                monstersToSpawn = gp.player.wanted;
+                monstersToSpawn = 2 + gp.player.wanted / 2; // 2, 3, 5, 7, then 8 at three stars
                 spawnTimer = 0; // the first monster comes right away
                 waveTimer = WAVE_DELAY;
             } else {

@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.BooleanControl;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineEvent;
@@ -17,11 +18,15 @@ import javax.sound.sampled.LineEvent;
 public class Sound {
 
     private static final String MUSIC = "/sound/background music.wav";
+    private static final String FOOTSTEPS = "/sound/walk on sand.wav";
     private static final float VOLUME = -20.0f; // decibels
 
     private final Map<String, AudioFormat> formats = new HashMap<>();
     private final Map<String, byte[]> data = new HashMap<>();
     private Clip music;
+    private Clip footsteps;
+    private volatile boolean muted = false;
+    private boolean walking = false; // only used by the game thread
     private boolean errorReported = false;
 
     // Sounds load and play on this thread, so the game never waits for them
@@ -36,6 +41,9 @@ public class Sound {
     }
 
     public void play(SoundEffect effect) {
+        if (muted) {
+            return;
+        }
         soundThread.execute(() -> {
             Clip clip = open(effect.path);
             if (clip != null) {
@@ -65,9 +73,55 @@ public class Sound {
         }
     }
 
+    // Called every frame: footsteps loop quietly while the player is walking
+    public void setWalking(boolean isWalking) {
+        if (isWalking == walking) {
+            return;
+        }
+        walking = isWalking;
+        soundThread.execute(() -> {
+            if (isWalking && footsteps == null) {
+                footsteps = open(FOOTSTEPS);
+                if (footsteps != null) {
+                    footsteps.loop(Clip.LOOP_CONTINUOUSLY);
+                }
+            } else if (!isWalking && footsteps != null) {
+                footsteps.stop();
+                footsteps = null;
+            }
+        });
+    }
+
+    // The music and footsteps keep playing silently, so unmuting carries on where they are
+    public void toggleMute() {
+        muted = !muted;
+        soundThread.execute(() -> {
+            applyVolume(music);
+            applyVolume(footsteps);
+        });
+    }
+
+    public boolean isMuted() {
+        return muted;
+    }
+
+    private void applyVolume(Clip clip) {
+        if (clip == null) {
+            return;
+        }
+        if (clip.isControlSupported(BooleanControl.Type.MUTE)) {
+            ((BooleanControl) clip.getControl(BooleanControl.Type.MUTE)).setValue(muted);
+        }
+        if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            volume.setValue(muted ? volume.getMinimum() : VOLUME);
+        }
+    }
+
     // Loads every sound once and starts the audio system early (its first start is slow)
     private void loadAll() {
         load(MUSIC);
+        load(FOOTSTEPS);
         for (SoundEffect effect : SoundEffect.values()) {
             load(effect.path);
         }
@@ -101,10 +155,7 @@ public class Sound {
             Clip clip = AudioSystem.getClip();
             clip.open(formats.get(path), sound, 0, sound.length);
 
-            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                volume.setValue(VOLUME);
-            }
+            applyVolume(clip);
 
             // Give the audio line back once the clip has finished or was stopped
             clip.addLineListener(event -> {

@@ -18,4 +18,14 @@ public enum Direction {
         this.dx = dx;
         this.dy = dy;
     }
+
+    // e.g. of(1, -1) is UP_RIGHT; of(0, 0) is null
+    public static Direction of(int dx, int dy) {
+        for (Direction d : values()) {
+            if (d.dx == dx && d.dy == dy) {
+                return d;
+            }
+        }
+        return null;
+    }
 }
