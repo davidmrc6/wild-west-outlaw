@@ -1,0 +1,510 @@
+package wildwestoutlaw;
+
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.awt.BasicStroke;
+import java.awt.RenderingHints;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.imageio.ImageIO;
+
+import wildwestoutlaw.object.OBJ_coin;
+import wildwestoutlaw.object.OBJ_heart;
+import wildwestoutlaw.object.OBJ_reputation;
+import wildwestoutlaw.object.OBJ_star;
+import wildwestoutlaw.object.SuperObject;
+
+public class UI {
+
+    GamePanel gp;
+    Graphics2D g2;
+    BufferedImage heart_full, heart_3o4, heart_2o4, heart_1o4, heart_0o4, 
+                    star_full, star_half, star_empty,
+                    reputation_full, reputation_half, reputation_empty,
+                    coin_img,
+                    A_key, S_key, D_key, W_key;
+    Font Carnevalee;
+    Font pixeloid;
+    public String currentDialogue;
+    public int commandNum = 0;
+    public boolean hasGameOverSoundPlayed = false;
+    public boolean hasGameWonSoundPlayed = false;
+
+    public UI(GamePanel gp) {
+        this.gp = gp;
+
+        try {
+            InputStream inputS = getClass().getResourceAsStream("/font/Carnevalee Freakshow.ttf");
+            Carnevalee = Font.createFont(Font.TRUETYPE_FONT, inputS);
+            inputS = getClass().getResourceAsStream("/font/PixeloidSansBold-PKnYd.ttf");
+            pixeloid = Font.createFont(Font.TRUETYPE_FONT, inputS);
+        } catch (FontFormatException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Create HUD object
+        SuperObject heart = new OBJ_heart(gp);
+        heart_full = heart.images[0];
+        heart_3o4 = heart.images[1];
+        heart_2o4 = heart.images[2];
+        heart_1o4 = heart.images[3];
+        heart_0o4 = heart.images[4];
+
+        SuperObject star = new OBJ_star(gp);
+        star_full = star.images[0];
+        star_half = star.images[1];
+        star_empty = star.images[2];
+
+        SuperObject reputation = new OBJ_reputation(gp);
+        reputation_full = reputation.images[0];
+        reputation_half = reputation.images[1];
+        reputation_empty = reputation.images[2];
+
+        SuperObject coin = new OBJ_coin(gp);
+        coin_img = coin.images[0];
+    }
+
+    public void draw(Graphics2D g2) {
+
+        this.g2 = g2;
+        
+        g2.setFont(Carnevalee);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // TITLE STATE
+        if (gp.gameState == gp.titleState) {
+            drawTitleScreen();
+        }
+
+        // PLAY STATE
+        if (gp.gameState == gp.playState) {
+            if ((gp.allMonstersDead() == false || (gp.allMonstersDead() == true && gp.spawnTimer >= 400)) && gp.npc[0].hasGameJustStarted == false) {
+                drawZombieKillCounter();
+            }
+            drawPlayerLife();
+            drawWantedStars();
+            drawReputation();
+            drawCoinCounter();
+        }
+        // PAUSE STATE
+        if (gp.gameState == gp.pauseState) {
+            drawPauseScreen();
+            drawPlayerLife();
+            drawWantedStars();
+            drawReputation();
+            drawCoinCounter();
+        }
+        // GAME OVER STATE
+        if (gp.gameState == gp.gameOverState) {
+            drawGameOverScreen();
+        }
+
+        // GAME WON STATE
+        if (gp.gameState == gp.gameWonState) {
+            drawGameWonScreen();
+        }        
+        // DIALOGUE STATE
+        if (gp.gameState == gp.dialogueState) {
+            drawPlayerLife();
+            drawWantedStars();
+            drawReputation();
+            drawCoinCounter();
+            drawDialogueScreen();
+        }
+
+        // TUTORIAL STATE
+        if (gp.gameState == gp.tutorialState) {
+            drawTutorialScreen();
+        }
+        
+    }
+
+    public void drawTutorialScreen() {
+        getKeyImages();
+
+        gp.tileCollision.draw(g2);
+        g2.setColor(new Color(0, 0, 0, 240));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        g2.setColor(Color.white);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 90f));
+
+        String text = "Press";
+
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        int x = gp.screenWidth / 2 - length / 2;
+        int y = gp.tileSize * 3;
+        g2.drawString(text, x, y);
+
+        x = gp.screenWidth / 2 - gp.tileSize / 2;
+        y += gp.tileSize;
+        g2.drawImage(W_key, x, y, gp.tileSize, gp.tileSize, null);
+
+        y += gp.tileSize + gp.tileSize / 4;
+        g2.drawImage(S_key, x, y, gp.tileSize, gp.tileSize, null);
+
+        x -= gp.tileSize + gp.tileSize / 8;
+        g2.drawImage(A_key, x, y, gp.tileSize, gp.tileSize, null);
+
+        x += 2 * gp.tileSize + gp.tileSize / 4;
+        g2.drawImage(D_key, x, y, gp.tileSize, gp.tileSize, null);
+
+        text = "To move.";
+        length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y = gp.tileSize * 8;
+        g2.drawString(text, x, y);
+
+        text = "Talk to the bartender to start the game.";
+        length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y = gp.tileSize * 10;
+        g2.drawString(text, x, y);
+
+        text = "Continue";
+        length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y = gp.tileSize * 14;
+        g2.drawString(text, x, y);
+        g2.drawString(">", x - gp.tileSize, y);
+    }
+
+    public void getKeyImages() {
+        try {
+            W_key = ImageIO.read(getClass().getResourceAsStream("/hud/keys/Wkey.png"));
+            A_key = ImageIO.read(getClass().getResourceAsStream("/hud/keys/Akey.png"));
+            S_key = ImageIO.read(getClass().getResourceAsStream("/hud/keys/Skey.png"));
+            D_key = ImageIO.read(getClass().getResourceAsStream("/hud/keys/Dkey.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void drawTitleScreen() {
+
+        gp.tileCollision.draw(g2);
+        g2.setColor(new Color(0, 0, 0, 240));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 120F));
+
+        String text = "Wild West Outlaw";
+
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        int x = gp.screenWidth / 2 - length / 2;
+        int y = gp.tileSize * 3;
+
+        g2.setColor(Color.gray);
+        g2.drawString(text, x+5, y+5);
+
+        g2.setColor(Color.white);
+        g2.drawString(text, x, y);
+
+        x = gp.screenWidth / 2 - gp.tileSize * 8;
+        y += gp.tileSize * 2;
+        g2.drawImage(gp.player.down1, x, y, gp.tileSize * 8, gp.tileSize * 8, null);
+
+        x = gp.screenWidth / 2 + gp.tileSize * 1;
+        g2.drawImage(gp.npc[0].down1, x, y, gp.tileSize * 8, gp.tileSize * 8, null);
+
+        // MENU
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 60F));
+
+        text = "Play";
+        x = gp.screenWidth / 2 - length/16;
+        y += gp.tileSize * 2;
+        g2.drawString(text, x, y);
+        if (commandNum == 0) {
+            g2.drawString(">", x - gp.tileSize / 2, y);
+        }
+
+        text = "Quit";
+        x = gp.screenWidth / 2 - length/16;
+        y += gp.tileSize;
+        g2.drawString(text, x, y);
+        if (commandNum == 1) {
+            g2.drawString(">", x - gp.tileSize / 2, y);
+        }
+    }
+
+    public void drawGameWonScreen() {
+
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        int x;
+        int y;
+        String text;
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 120f));
+
+        text = "You win!";
+        // Shadow
+        g2.setColor(Color.black);
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y = gp.tileSize * 4;
+        g2.drawString(text, x, y);
+
+        // Main
+        g2.setColor(Color.white);
+        g2.drawString(text, x - 4, y - 4);
+
+        if (hasGameOverSoundPlayed == false) {
+            gp.playSE(6);
+            hasGameOverSoundPlayed = true;
+        }
+
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 60F));
+
+        text = "Title screen";
+        length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y += gp.tileSize * 10;
+        g2.drawString(text, x, y);
+        g2.drawString(">", x - gp.tileSize / 2, y);
+    }
+
+    public void drawGameOverScreen() {
+
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        int x;
+        int y;
+        String text;
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 120f));
+
+        text = "You died!";
+        // Shadow
+        g2.setColor(Color.black);
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y = gp.tileSize * 4;
+        g2.drawString(text, x, y);
+
+        // Main
+        g2.setColor(Color.white);
+        g2.drawString(text, x - 4, y - 4);
+
+        // Retry
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 60f));
+        text = "Retry";
+        length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y += gp.tileSize * 4;
+        g2.drawString(text, x, y);
+        if (commandNum == 0) {
+            g2.drawString(">", x - gp.tileSize, y);
+        }
+
+        // Back to title screen
+        text = "Title screen";
+        length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y += gp.tileSize;
+        g2.drawString(text, x, y);
+        if (commandNum == 1) {
+            g2.drawString(">", x - gp.tileSize, y);
+        }
+
+        if (hasGameOverSoundPlayed == false) {
+            gp.playSE(5);
+            hasGameOverSoundPlayed = true;
+        }
+    }
+
+    public void drawZombieKillCounter() {
+
+        String text = "Kill Enemies!";
+        
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 80F));
+        g2.setColor(Color.black);
+
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        int x = gp.screenWidth / 2 - length / 2;
+        int y = gp.screenHeight / 12;
+
+        g2.drawString(text, x, y);
+
+        g2.setColor(Color.white);
+        g2.drawString(text, x - 4, y - 4);
+    }
+
+    public void drawDialogueScreen() {
+
+        g2.setFont(pixeloid);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 25F));
+
+        int x = gp.tileSize * 2;
+        int y = gp.tileSize / 2;
+        int width = gp.screenWidth - (gp.tileSize * 4);
+        int height = gp.tileSize * 5;
+
+        drawSubWindow(x, y, width, height);
+
+        x += gp.tileSize / 2;
+        y += gp.tileSize;
+
+        for (String line: currentDialogue.split("\n")) {
+            g2.drawString(line, x, y);
+            y += gp.tileSize;
+        }
+    }
+
+    public void drawSubWindow(int x, int y, int width, int height) {
+
+        Color color = new Color(0, 0, 0, 220);
+        g2.setColor(color);
+        g2.fillRoundRect(x, y, width, height, 35, 35);
+
+        color = new Color(255, 255, 255);
+        g2.setColor(color);
+        g2.setStroke(new BasicStroke(5));
+        g2.drawRoundRect(x + 5, y + 5, width - 10, height - 10, 25, 25);
+        
+    }
+
+    public void drawPauseScreen() {
+        String text = "PAUSED";
+        
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 80F));
+        g2.setColor(Color.black);
+
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        int x = gp.screenWidth / 2 - length / 2;
+        int y = gp.screenHeight / 2;
+
+        g2.drawString(text, x, y);
+
+        g2.setColor(Color.white);
+        g2.drawString(text, x - 4, y - 4);
+    }
+
+    public void drawCoinCounter() {
+
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 40F));
+        g2.setColor(Color.white);
+
+        int x = gp.tileSize / 2;
+        int y = 7 * gp.tileSize / 4;
+
+
+        g2.drawImage(coin_img, x , y, gp.tileSize, gp.tileSize, null);
+        g2.drawString("x " + gp.player.coins + " / 3", 7*gp.tileSize / 4, 5*gp.tileSize / 2);
+
+    }
+
+    public void drawPlayerLife() {
+
+        int x = gp.tileSize/2;
+        int y = gp.tileSize/2; 
+        int i = 0;
+
+        // DRAW BLANK HEART
+        while (i < gp.player.maxLife/4) {
+            g2.drawImage(heart_0o4, x, y, null);
+            i++;
+            x += gp.tileSize + 3;
+        }
+
+        x = gp.tileSize/2;
+        y = gp.tileSize/2;
+        i = 0;
+
+        // DRAW CURRENT LIFE
+        while (i < gp.player.life) {
+            g2.drawImage(heart_1o4, x, y, null);
+            i++;
+            if (i < gp.player.life) {
+                g2.drawImage(heart_2o4, x, y, null);
+            }
+            i++;
+            if (i < gp.player.life) {
+                g2.drawImage(heart_3o4, x, y, null);
+            }
+            i++;
+            if (i < gp.player.life) {
+                g2.drawImage(heart_full, x, y, null);
+            }
+            i++;
+            x += gp.tileSize + 3;
+        }
+
+    }
+
+    public void drawWantedStars() {
+
+        int x = gp.screenWidth - 4 * gp.tileSize;
+        int y = gp.tileSize/2;
+        int i = 0;
+
+        // DRAW BLANK STARS
+        while (i < gp.player.maxWanted/4) {
+            g2.drawImage(star_empty, x, y, null);
+            i++;
+            x += gp.tileSize + 3;
+        }
+
+        x = gp.screenWidth - 4 * gp.tileSize;
+        y = gp.tileSize/2;
+        i = 0;
+
+        // DRAW CURRENT PLAYER WANTED
+        while (i < gp.player.wanted && i <= gp.player.maxWanted) {
+
+            if ((i+1) % 2 == 0 && !((i+1) % 4 == 0)) {
+                g2.drawImage(star_half, x, y, null);
+                i++;
+            }
+
+            else if ((i+1) % 4 == 0) {
+                g2.drawImage(star_full, x, y, null);
+                i++;
+                x += gp.tileSize + 3;
+            }
+
+            i++;
+        }
+    }
+
+    public void drawReputation() {
+        
+        int x = gp.screenWidth - 4 * gp.tileSize;
+        int y = 7 * gp.tileSize / 4;
+        int i = 0;
+
+        // DRAW BLANK STARS
+        while (i < gp.player.maxReputation/4) {
+            g2.drawImage(reputation_empty, x, y, null);
+            i++;
+            x += gp.tileSize + 3;
+        }
+
+        x = gp.screenWidth - 4 * gp.tileSize;
+        y = gp.tileSize/2 + gp.tileSize + 16;  
+        i = 0;
+
+        // DRAW CURRENT PLAYER REPUTATION
+        while (i < gp.player.reputation && i <= gp.player.maxReputation) {
+
+            if ((i+1) % 2 == 0 && !((i+1) % 4 == 0)) {
+                g2.drawImage(reputation_half, x, y, null);
+                i++;
+            }
+
+            else if ((i+1) % 4 == 0) {
+                g2.drawImage(reputation_full, x, y, null);
+                i++;
+                x += gp.tileSize + 3;
+            }
+
+            i++;
+        }
+    }
+}
