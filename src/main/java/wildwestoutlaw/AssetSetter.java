@@ -1,7 +1,5 @@
 package wildwestoutlaw;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Random;
 
 import wildwestoutlaw.entity.NPC_bartender;
@@ -11,10 +9,9 @@ import wildwestoutlaw.entity.MON_cactus;
 import wildwestoutlaw.entity.MON_coyote;
 
 public class AssetSetter {
-    
+
     GamePanel gp;
-    public int spawnCounter = 0;
-    private Timer monsterTimer;
+    private final Random rand = new Random();
 
     public AssetSetter(GamePanel gp) {
         this.gp = gp;
@@ -39,48 +36,31 @@ public class AssetSetter {
         gp.npc[3].worldY = gp.worldHeight / 2 + 2 * gp.tileSize;
     }
 
-    // Stops a wave that is still spawning, e.g. when the game restarts
-    public void cancelSpawning() {
-        if (monsterTimer != null) {
-            monsterTimer.cancel();
-            monsterTimer = null;
-        }
-    }
-
-    public void setMonster(int numOfMonsters) {
-        cancelSpawning();
-        Timer timer = new Timer();
-        monsterTimer = timer;
-        Random rand = new Random(); // Create a Random object for generating random numbers
-    
-        timer.schedule(new TimerTask() {
-            int count = 0;
-            public void run() {
-                if (count >= numOfMonsters) {
-                    timer.cancel();
-                } else {
-                    // Generate a random number between 0 and 100
-                    int chance = rand.nextInt(75);
-    
-                    // If the random number is less than 10, spawn a MON_coyote
-                    if (chance < 10) {
-                        int worldX = gp.worldWidth - gp.tileSize * 9;
-                        int worldY = gp.worldHeight / 2 - gp.tileSize * 7;
-    
-                        gp.monster[count] = new MON_coyote(gp);
-                        gp.monster[count].worldX = worldX;
-                        gp.monster[count].worldY = worldY;
-                    } else { // Else, spawn a MON_cactus
-                        int worldX = gp.tileSize * 10;
-                        int worldY = gp.tileSize * 10 + gp.tileSize / 2;
-    
-                        gp.monster[count] = new MON_cactus(gp);
-                        gp.monster[count].worldX = worldX;
-                        gp.monster[count].worldY = worldY;
-                    }
-                    count++;
-                }
+    // Puts one new monster in the first free slot
+    public void spawnMonster() {
+        int slot = -1;
+        for (int i = 0; i < gp.monster.length; i++) {
+            if (gp.monster[i] == null) {
+                slot = i;
+                break;
             }
-        }, 0, 1000); // Delay of 0 ms and period of 1000 ms (1 second)
+        }
+        if (slot == -1) {
+            return; // no room for more monsters
+        }
+
+        // Generate a random number between 0 and 74
+        int chance = rand.nextInt(75);
+
+        // If the random number is less than 10, spawn a MON_coyote
+        if (chance < 10) {
+            gp.monster[slot] = new MON_coyote(gp);
+            gp.monster[slot].worldX = gp.worldWidth - gp.tileSize * 9;
+            gp.monster[slot].worldY = gp.worldHeight / 2 - gp.tileSize * 7;
+        } else { // Else, spawn a MON_cactus
+            gp.monster[slot] = new MON_cactus(gp);
+            gp.monster[slot].worldX = gp.tileSize * 10;
+            gp.monster[slot].worldY = gp.tileSize * 10 + gp.tileSize / 2;
+        }
     }
 }

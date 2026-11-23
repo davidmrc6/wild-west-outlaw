@@ -101,7 +101,7 @@ public class NPC_bartender extends Entity {
         }
 
         if (dialogueIndex == 8 && hasGameJustStarted == true) {
-            gp.monsterSpawning = true;
+            gp.spawner.start();
             gp.player.wanted = 1;
             hasGameJustStarted = false;
         }

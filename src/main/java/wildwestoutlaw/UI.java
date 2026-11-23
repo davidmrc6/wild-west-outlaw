@@ -22,7 +22,7 @@ public class UI {
 
     GamePanel gp;
     Graphics2D g2;
-    BufferedImage heart_full, heart_3o4, heart_2o4, heart_1o4, heart_0o4, 
+    BufferedImage heart_full, heart_3o4, heart_2o4, heart_1o4, heart_0o4,
                     star_full, star_half, star_empty,
                     reputation_full, reputation_half, reputation_empty,
                     coin_img,
@@ -33,6 +33,9 @@ public class UI {
     public int commandNum = 0;
     public boolean hasGameOverSoundPlayed = false;
     public boolean hasGameWonSoundPlayed = false;
+    private BufferedImage menuBackdrop;
+    private int backdropWorldX, backdropWorldY;
+    private final BufferedImage[] titleScreens = new BufferedImage[2]; // one per cursor position
 
     public UI(GamePanel gp) {
         this.gp = gp;
@@ -68,23 +71,25 @@ public class UI {
 
         SuperObject coin = new OBJ_coin(gp);
         coin_img = coin.images[0];
+
+        getKeyImages();
     }
 
     public void draw(Graphics2D g2) {
 
         this.g2 = g2;
-        
+
         g2.setFont(Carnevalee);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         // TITLE STATE
-        if (gp.gameState == gp.titleState) {
+        if (gp.gameState == GameState.TITLE) {
             drawTitleScreen();
         }
 
         // PLAY STATE
-        if (gp.gameState == gp.playState) {
-            if ((gp.allMonstersDead() == false || (gp.allMonstersDead() == true && gp.spawnTimer >= 400)) && gp.npc[0].hasGameJustStarted == false) {
+        if (gp.gameState == GameState.PLAY) {
+            if (gp.spawner.isWaveInProgress()) {
                 drawZombieKillCounter();
             }
             drawPlayerLife();
@@ -93,7 +98,7 @@ public class UI {
             drawCoinCounter();
         }
         // PAUSE STATE
-        if (gp.gameState == gp.pauseState) {
+        if (gp.gameState == GameState.PAUSE) {
             drawPauseScreen();
             drawPlayerLife();
             drawWantedStars();
@@ -101,16 +106,16 @@ public class UI {
             drawCoinCounter();
         }
         // GAME OVER STATE
-        if (gp.gameState == gp.gameOverState) {
+        if (gp.gameState == GameState.GAME_OVER) {
             drawGameOverScreen();
         }
 
         // GAME WON STATE
-        if (gp.gameState == gp.gameWonState) {
+        if (gp.gameState == GameState.GAME_WON) {
             drawGameWonScreen();
-        }        
+        }
         // DIALOGUE STATE
-        if (gp.gameState == gp.dialogueState) {
+        if (gp.gameState == GameState.DIALOGUE) {
             drawPlayerLife();
             drawWantedStars();
             drawReputation();
@@ -119,18 +124,32 @@ public class UI {
         }
 
         // TUTORIAL STATE
-        if (gp.gameState == gp.tutorialState) {
+        if (gp.gameState == GameState.TUTORIAL) {
             drawTutorialScreen();
         }
-        
+
+    }
+
+    // Map + dark overlay behind the title and tutorial screens, drawn once and reused
+    private void drawMenuBackdrop() {
+        if (menuBackdrop == null || backdropWorldX != gp.player.worldX || backdropWorldY != gp.player.worldY) {
+            menuBackdrop = new BufferedImage(gp.screenWidth, gp.screenHeight, BufferedImage.TYPE_INT_RGB);
+            Graphics2D b = menuBackdrop.createGraphics();
+            b.setColor(GamePanel.SAND);
+            b.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+            gp.tileCollision.draw(b);
+            b.setColor(new Color(0, 0, 0, 240));
+            b.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+            b.dispose();
+            backdropWorldX = gp.player.worldX;
+            backdropWorldY = gp.player.worldY;
+        }
+        g2.drawImage(menuBackdrop, 0, 0, null);
     }
 
     public void drawTutorialScreen() {
-        getKeyImages();
 
-        gp.tileCollision.draw(g2);
-        g2.setColor(new Color(0, 0, 0, 240));
-        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+        drawMenuBackdrop();
 
         g2.setColor(Color.white);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 90f));
@@ -186,11 +205,36 @@ public class UI {
         }
     }
 
+    // The title screen only changes when the menu cursor moves, so each version of it is drawn once and
+    // then reused
     public void drawTitleScreen() {
 
-        gp.tileCollision.draw(g2);
-        g2.setColor(new Color(0, 0, 0, 240));
-        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+        if (backdropWorldX != gp.player.worldX || backdropWorldY != gp.player.worldY) {
+            titleScreens[0] = null;
+            titleScreens[1] = null;
+        }
+
+        if (titleScreens[commandNum] == null) {
+            BufferedImage image = new BufferedImage(gp.screenWidth, gp.screenHeight, BufferedImage.TYPE_INT_RGB);
+            Graphics2D imageGraphics = image.createGraphics();
+            imageGraphics.setFont(g2.getFont());
+            imageGraphics.setRenderingHints(g2.getRenderingHints());
+
+            Graphics2D screen = g2;
+            g2 = imageGraphics;
+            drawTitleScreenContents();
+            g2 = screen;
+
+            imageGraphics.dispose();
+            titleScreens[commandNum] = image;
+        }
+
+        g2.drawImage(titleScreens[commandNum], 0, 0, null);
+    }
+
+    private void drawTitleScreenContents() {
+
+        drawMenuBackdrop();
 
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 120F));
 
@@ -322,7 +366,7 @@ public class UI {
     public void drawZombieKillCounter() {
 
         String text = "Kill Enemies!";
-        
+
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 80F));
         g2.setColor(Color.black);
 
@@ -367,12 +411,12 @@ public class UI {
         g2.setColor(color);
         g2.setStroke(new BasicStroke(5));
         g2.drawRoundRect(x + 5, y + 5, width - 10, height - 10, 25, 25);
-        
+
     }
 
     public void drawPauseScreen() {
         String text = "PAUSED";
-        
+
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 80F));
         g2.setColor(Color.black);
 
@@ -403,7 +447,7 @@ public class UI {
     public void drawPlayerLife() {
 
         int x = gp.tileSize/2;
-        int y = gp.tileSize/2; 
+        int y = gp.tileSize/2;
         int i = 0;
 
         // DRAW BLANK HEART
@@ -474,7 +518,7 @@ public class UI {
     }
 
     public void drawReputation() {
-        
+
         int x = gp.screenWidth - 4 * gp.tileSize;
         int y = 7 * gp.tileSize / 4;
         int i = 0;
@@ -487,7 +531,7 @@ public class UI {
         }
 
         x = gp.screenWidth - 4 * gp.tileSize;
-        y = gp.tileSize/2 + gp.tileSize + 16;  
+        y = gp.tileSize/2 + gp.tileSize + 16;
         i = 0;
 
         // DRAW CURRENT PLAYER REPUTATION

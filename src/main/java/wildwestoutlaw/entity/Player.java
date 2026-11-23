@@ -9,6 +9,7 @@ import java.awt.AlphaComposite;
 import javax.imageio.ImageIO;
 
 import wildwestoutlaw.GamePanel;
+import wildwestoutlaw.GameState;
 import wildwestoutlaw.KeyHandler;
 import wildwestoutlaw.UtilityTool;
 import wildwestoutlaw.object.OBJ_bullet;
@@ -416,7 +417,7 @@ public class Player extends Entity {
         }
 
         if (life <= 0) {
-            gp.gameState = gp.gameOverState;
+            gp.gameState = GameState.GAME_OVER;
         }
     }
 
@@ -972,7 +973,7 @@ public class Player extends Entity {
         if (i != 999) {
 
             if (gp.npc[i].hasDialogue == true) {   
-                gp.gameState = gp.dialogueState;
+                gp.gameState = GameState.DIALOGUE;
                 gp.npc[i].speak();
                 gp.playSE(4);
             }

@@ -1,37 +1,29 @@
 package wildwestoutlaw;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
-
 import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
-public class Main extends JPanel {
+public class Main {
 
-    public static JFrame window;
-    public static int screenWidth;
-    public static int screenHeight;
-
-    public Main () {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        screenWidth = screenSize.width;
-        screenHeight = screenSize.height;
-        Main.window.setSize(screenWidth, screenHeight);
-    }
-    
     public static void main (String[] args) {
 
-        window = new JFrame();
-        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setResizable(true);
-        window.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        window.setTitle("Wild West Outlaw");
-        GamePanel gamePanel = new GamePanel();
-        window.add(gamePanel);
-        window.setLocationRelativeTo(null);
-        window.setVisible(true);
+        // Swing windows have to be created on Swing's own thread
+        SwingUtilities.invokeLater(() -> {
 
-        gamePanel.startGameThread();
+            JFrame window = new JFrame();
+            window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            window.setResizable(true);
+            window.setTitle("Wild West Outlaw");
 
+            GamePanel gamePanel = new GamePanel();
+            window.add(gamePanel);
+            window.pack();
+            window.setLocationRelativeTo(null);
+            window.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            window.setVisible(true);
+            gamePanel.requestFocusInWindow();
+
+            gamePanel.startGameThread();
+        });
     }
 }

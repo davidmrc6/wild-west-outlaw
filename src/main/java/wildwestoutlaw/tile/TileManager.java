@@ -43,7 +43,8 @@ public class TileManager {
             BufferedImage originalImage = ImageIO.read(getClass().getResourceAsStream("/environment/Background.png"));
             Image scaledBackground = originalImage.getScaledInstance(gp.worldWidth, gp.worldHeight, Image.SCALE_DEFAULT);
             Image scaledHitboxes = hitboxes.getScaledInstance(gp.worldWidth, gp.worldHeight, Image.SCALE_DEFAULT);
-            backgroundImage = new BufferedImage(gp.worldWidth, gp.worldHeight, BufferedImage.TYPE_INT_ARGB);
+            // The finished map is fully opaque, so no alpha channel (much faster to draw)
+            backgroundImage = new BufferedImage(gp.worldWidth, gp.worldHeight, BufferedImage.TYPE_INT_RGB);
             // try {
             // writeHitboxes("/tile/hitboxes.txt", hitboxes);
             // } catch (IOException e) {
@@ -65,10 +66,23 @@ public class TileManager {
             tile[index].image = ImageIO.read(getClass().getResourceAsStream("/environment/" + imageName + ".png"));
             tile[index].image = uTool.scaleImage(tile[index].image, gp.tileSize, gp.tileSize);
             tile[index].collision = collision;
-            tile[index].hitbox = new Rectangle(x, y, width, height);            
+            tile[index].hitbox = new Rectangle(x, y, width, height);
+            tile[index].visible = hasVisiblePixels(tile[index].image);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // True if the image has at least one pixel that isn't fully transparent
+    private boolean hasVisiblePixels(BufferedImage image) {
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                if ((image.getRGB(x, y) >>> 24) != 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void loadMap(String filePath) {
@@ -122,8 +136,8 @@ public class TileManager {
                 int screenX = worldX - playerWorldX + playerScreenX;
                 int screenY = worldY - playerWorldY + playerScreenY;
 
-                //only draw screensize
-                if (worldX + tileSize > playerWorldX - playerScreenX && worldX - tileSize < playerWorldX + playerScreenX
+                // only draw screensize, and skip empty tiles
+                if (tiles[tileNum].visible && worldX + tileSize > playerWorldX - playerScreenX && worldX - tileSize < playerWorldX + playerScreenX
                         && worldY + tileSize > playerWorldY - playerScreenY && worldY - tileSize < playerWorldY + playerScreenY) {
                     g2.drawImage(tiles[tileNum].image, screenX, screenY, null);
                 }
@@ -136,12 +150,8 @@ public class TileManager {
         int bgX = gp.player.screenX - gp.player.worldX;
         int bgY = gp.player.screenY - gp.player.worldY;
 
-        // Calculate the visible area of the screen
-        int visibleWidth = Math.max(gp.getWidth(), backgroundImage.getWidth() - bgX);
-        int visibleHeight = Math.max(gp.getHeight(), backgroundImage.getHeight() - bgY);
-        
-        Rectangle visibleRect = new Rectangle(visibleWidth, visibleHeight);
-        visibleRect.translate(gp.player.screenX - visibleWidth / 2, gp.player.screenY - visibleHeight / 2);
+        // The visible area of the screen
+        Rectangle visibleRect = new Rectangle(0, 0, gp.screenWidth, gp.screenHeight);
 
         // Calculate the intersection of the visible area and the background image
         Rectangle bgRect = new Rectangle(bgX, bgY, backgroundImage.getWidth(), backgroundImage.getHeight());
