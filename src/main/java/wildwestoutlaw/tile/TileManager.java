@@ -1,12 +1,6 @@
 package wildwestoutlaw.tile;
 
 import java.awt.Graphics2D;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
@@ -14,123 +8,41 @@ import wildwestoutlaw.Assets;
 import wildwestoutlaw.GamePanel;
 
 public class TileManager {
-    
+
     GamePanel gp;
-    public Tile[] tile;
-    public int mapTileNum[][];
+    public final CollisionMap collisionMap;
+    private final boolean[][] blockedTiles;
     BufferedImage backgroundImage;
 
-
-    public TileManager(GamePanel gp, String path) {
+    public TileManager(GamePanel gp) {
         this.gp = gp;
 
-        tile = new Tile[10];
-        mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
-
-        getTileImage();
-        loadMap(path);
-
-    }
-
-    public void getTileImage() {
-        setup (0, "empty_tile", false, 0, 0, 32, 32);
-        setup (1, "empty_tile", true, 0, 0, 32, 32);
-        BufferedImage hitboxes = Assets.image("/environment/MAIN.png");
+        BufferedImage buildings = Assets.image("/environment/MAIN.png");
         BufferedImage originalImage = Assets.image("/environment/Background.png");
+
         // The finished map is fully opaque, so no alpha channel (much faster to draw)
         backgroundImage = new BufferedImage(gp.worldWidth, gp.worldHeight, BufferedImage.TYPE_INT_RGB);
-        // try {
-        // writeHitboxes("/tile/hitboxes.txt", hitboxes);
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
         Graphics2D g2d = backgroundImage.createGraphics();
         g2d.drawImage(originalImage, 0, 0, gp.worldWidth, gp.worldHeight, null);
-        g2d.drawImage(hitboxes, 0, 0, gp.worldWidth, gp.worldHeight, null);
+        g2d.drawImage(buildings, 0, 0, gp.worldWidth, gp.worldHeight, null);
         g2d.dispose();
-    }
 
-    public void setup (int index, String imageName, boolean collision, int x, int y, int width, int height) {
-        tile[index] = new Tile();
-        tile[index].image = Assets.image("/environment/" + imageName + ".png", gp.tileSize);
-        tile[index].collision = collision;
-        tile[index].hitbox = new Rectangle(x, y, width, height);
-        tile[index].visible = hasVisiblePixels(tile[index].image);
-    }
+        collisionMap = new CollisionMap(buildings, gp.scale);
 
-    // True if the image has at least one pixel that isn't fully transparent
-    private boolean hasVisiblePixels(BufferedImage image) {
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                if ((image.getRGB(x, y) >>> 24) != 0) {
-                    return true;
-                }
+        blockedTiles = new boolean[gp.maxWorldCol][gp.maxWorldRow];
+        for (int col = 0; col < gp.maxWorldCol; col++) {
+            for (int row = 0; row < gp.maxWorldRow; row++) {
+                blockedTiles[col][row] = collisionMap.isBlocked(new Rectangle(col * gp.tileSize, row * gp.tileSize, gp.tileSize, gp.tileSize));
             }
         }
-        return false;
     }
 
-    private void loadMap(String filePath) {
-        try {
-            InputStream is = getClass().getResourceAsStream(filePath);
-            BufferedReader br = new BufferedReader (new InputStreamReader(is));
-
-            int col = 0;
-            int row = 0;
-
-            while (col < gp.maxWorldCol && row < gp.maxWorldRow) {
-
-                String line = br.readLine();
-
-                while (col < gp.maxWorldCol) {
-                    String numbers[] = line.split(" ");
-                    int num = Integer.parseInt(numbers[col]);
-                    mapTileNum[col][row] = num;
-                    col++;
-                }
-                if (col == gp.maxWorldCol) {
-                    col = 0;
-                    row++;
-                }
-            }
-            br.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    // True if anything in the tile is solid (the path finder works in whole tiles)
+    public boolean isTileBlocked(int col, int row) {
+        return blockedTiles[col][row];
     }
 
     public void draw(Graphics2D g2) {
-        // Draw the background image
-        drawBackgroundImage(g2);
-
-        // Draw the tiles
-        int playerWorldX = gp.player.worldX;
-        int playerWorldY = gp.player.worldY;
-        int playerScreenX = gp.player.screenX;
-        int playerScreenY = gp.player.screenY;
-        int tileSize = gp.tileSize;
-        int maxWorldCol = gp.maxWorldCol;
-        int maxWorldRow = gp.maxWorldRow;
-        Tile[] tiles = tile;
-        int[][] mapTileNums = mapTileNum;
-        for (int worldRow = 0; worldRow < maxWorldRow; worldRow++) {
-            for (int worldCol = 0; worldCol < maxWorldCol; worldCol++) {
-                int tileNum = mapTileNums[worldCol][worldRow];
-                int worldX = worldCol * tileSize;
-                int worldY = worldRow * tileSize;
-                int screenX = worldX - playerWorldX + playerScreenX;
-                int screenY = worldY - playerWorldY + playerScreenY;
-
-                // only draw screensize, and skip empty tiles
-                if (tiles[tileNum].visible && worldX + tileSize > playerWorldX - playerScreenX && worldX - tileSize < playerWorldX + playerScreenX
-                        && worldY + tileSize > playerWorldY - playerScreenY && worldY - tileSize < playerWorldY + playerScreenY) {
-                    g2.drawImage(tiles[tileNum].image, screenX, screenY, null);
-                }
-            }
-        }
-    }
-
-    public void drawBackgroundImage(Graphics2D g2) {
         // Calculate the position of the background image
         int bgX = gp.player.screenX - gp.player.worldX;
         int bgY = gp.player.screenY - gp.player.worldY;
@@ -148,39 +60,4 @@ public class TileManager {
             g2.drawImage(visibleImage, intersection.x, intersection.y, null);
         }
     }
-
-    // private static final int TILE_SIZE = 32;
-
-    // public static void writeHitboxes(String filename, BufferedImage image) throws IOException {
-    //     int width = image.getWidth();
-    //     int height = image.getHeight();
-    //     int rows = height / TILE_SIZE;
-    //     int cols = width / TILE_SIZE;
-
-    //     try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-    //         for (int row = 0; row < rows; row++) {
-    //             for (int col = 0; col < cols; col++) {
-    //                 boolean hasPixel = false;
-    //                 for (int y = 0; y < TILE_SIZE; y++) {
-    //                     for (int x = 0; x < TILE_SIZE; x++) {
-    //                         int pixel = image.getRGB(col * TILE_SIZE + x, row * TILE_SIZE + y);
-    //                         if ((pixel & 0xff000000) != 0) {
-    //                             hasPixel = true;
-    //                             break;
-    //                         }
-    //                     }
-    //                     if (hasPixel) {
-    //                         break;
-    //                     }
-    //                 }
-    //                 if (col != cols-1)
-    //                 writer.write(hasPixel ? "1 " : "0 ");
-    //                 else {
-    //                 writer.write(hasPixel ? "1" : "0");
-    //                 }
-    //             }
-    //             writer.newLine(); // add this line to write each row on a new line
-    //         }
-    //     }
-    // }
 }

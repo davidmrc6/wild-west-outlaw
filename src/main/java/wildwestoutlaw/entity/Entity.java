@@ -26,8 +26,6 @@ public class Entity {
     public Direction direction = Direction.DOWN;
 
     public Rectangle solidArea = new Rectangle(0, 0, 32, 32);
-    public int solidAreaDefaultX;
-    public int solidAreaDefaultY;
     public boolean collisionOn = false;
 
     public int maxLife;
@@ -64,7 +62,7 @@ public class Entity {
 
     // The hitbox in world coordinates
     public Rectangle worldHitbox() {
-        return new Rectangle(worldX + solidAreaDefaultX, worldY + solidAreaDefaultY, solidArea.width, solidArea.height);
+        return new Rectangle(worldX + solidArea.x, worldY + solidArea.y, solidArea.width, solidArea.height);
     }
 
     public int screenX() {
