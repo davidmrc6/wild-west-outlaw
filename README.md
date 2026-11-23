@@ -4,6 +4,8 @@
 
 Welcome to WildWestOutlaw, an exciting adventure game set in the wild west! In this game, you'll step into the boots of a notorious outlaw and navigate the rugged landscape of the old west. Engage in thrilling shootouts, interact with intriguing characters, and immerse yourself in the rich, atmospheric world of the wild west.
 
+![WildWestOutlaw gameplay](screenshots/gameplay.png)
+
 ## Getting Started
 
 To run the game, follow these simple steps:
@@ -41,13 +43,13 @@ Enjoy your adventure in the wild west!
 | `Space` | Shoot |
 | `Enter` | Talk to characters / confirm menu choices |
 | `P` | Pause |
+| `M` | Sound on / off |
+| `F11` | Fullscreen on / off |
+| `F3` | Show the hitboxes |
 
 ## Known Bugs
 
-Please be aware of the following known issues in the game:
-
-- Visual bugs may occur on certain graphics processing units (GPUs). These issues can affect the overall appearance and performance of the game.
-- Some systems may experience inaccurate hitboxes, which could impact the precision of in-game interactions.
+There are no known bugs at the moment. The visual bugs on certain graphics processing units (GPUs) and the inaccurate hitboxes from earlier versions have been fixed.
 
 ## Gameplay Tips
 
@@ -76,5 +78,6 @@ We would like to extend our gratitude to the following individuals and resources
 
 - **RyiSnow**: For providing inspiration through their [YouTube series](https://www.youtube.com/watch?v=om59cwR7psI&list=PL_QPQmz5C6WUF-pOQDsbsKbaBZqXj4qSq).
 - **Estúdio Vaca Roxa**: For their remarkable "Generic OLDWEST" graphics pack, which added authenticity and ambiance to our wild west world. You can find their graphics pack [on itch.io](https://bakudas.itch.io/generic-oldwest-pack).
+- **GGBotNet**: For the "Pixeloid Sans" font used in the dialogues, released under the [SIL Open Font License](https://scripts.sil.org/OFL). You can find it at [ggbot.net](https://ggbot.net).
 
 Thank you for playing WildWestOutlaw, and we hope you enjoy your adventure in the wild west! If you encounter any issues or have feedback, please feel free to reach out to us. Happy gaming!

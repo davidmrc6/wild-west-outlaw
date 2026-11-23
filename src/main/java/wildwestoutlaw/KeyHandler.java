@@ -83,6 +83,14 @@ public class KeyHandler implements KeyListener {
             gp.showHitboxes = !gp.showHitboxes;
             return;
         }
+        if (code == KeyEvent.VK_M) {
+            gp.sound.toggleMute();
+            return;
+        }
+        if (code == KeyEvent.VK_F11) {
+            gp.toggleFullScreen();
+            return;
+        }
 
         switch (gp.gameState) {
 

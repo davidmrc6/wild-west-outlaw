@@ -8,6 +8,7 @@ import wildwestoutlaw.entity.Bartender;
 import wildwestoutlaw.entity.Monster;
 import wildwestoutlaw.entity.MonsterType;
 import wildwestoutlaw.entity.Townsperson;
+import wildwestoutlaw.object.Coin;
 import wildwestoutlaw.object.DamageEffect;
 import wildwestoutlaw.object.Explosion;
 
@@ -33,6 +34,7 @@ public class AssetSetter {
         new Monster(gp, MonsterType.COYOTE);
         new Explosion(gp, 0, 0);
         new DamageEffect(gp, gp.player);
+        new Coin(gp);
     }
 
     public void setNPC() {

@@ -297,8 +297,9 @@ public class Player extends Entity {
             drawDust(g2, walkAnimation.frame());
         }
 
-        if (invincible == true) {
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
+        // Blinks for a moment after being hit
+        if (invincible == true && (invincibleCounter / 3) % 2 == 0) {
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
         }
 
         g2.drawImage(image, screenX, screenY, null);

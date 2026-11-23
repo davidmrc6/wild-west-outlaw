@@ -69,7 +69,7 @@ public class UI {
         // PLAY STATE
         if (gp.gameState == GameState.PLAY) {
             if (gp.spawner.isWaveInProgress()) {
-                drawZombieKillCounter();
+                drawKillEnemiesBanner();
             }
             drawPlayerLife();
             drawWantedStars();
@@ -108,6 +108,17 @@ public class UI {
             drawTutorialScreen();
         }
 
+        if (gp.sound.isMuted()) {
+            drawMutedNote();
+        }
+    }
+
+    private void drawMutedNote() {
+        g2.setFont(pixeloid.deriveFont(Font.PLAIN, 18F));
+        String text = "Sound off (M)";
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        g2.setColor(Color.white);
+        g2.drawString(text, gp.screenWidth - length - 20, gp.screenHeight - 20);
     }
 
     // Map + dark overlay behind the title and tutorial screens, drawn once and reused
@@ -160,10 +171,16 @@ public class UI {
         y = gp.tileSize * 8;
         g2.drawString(text, x, y);
 
-        text = "Talk to the bartender to start the game.";
+        text = "SPACE to shoot, ENTER to talk, P to pause.";
         length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
         x = gp.screenWidth / 2 - length / 2;
         y = gp.tileSize * 10;
+        g2.drawString(text, x, y);
+
+        text = "Talk to the bartender to start the game.";
+        length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        x = gp.screenWidth / 2 - length / 2;
+        y = gp.tileSize * 12;
         g2.drawString(text, x, y);
 
         text = "Continue";
@@ -236,8 +253,11 @@ public class UI {
         // MENU
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 60F));
 
+        int menuWidth = (int) Math.max(g2.getFontMetrics().getStringBounds("Play", g2).getWidth(),
+                                       g2.getFontMetrics().getStringBounds("Quit", g2).getWidth());
+
         text = "Play";
-        x = gp.screenWidth / 2 - length/16;
+        x = gp.screenWidth / 2 - menuWidth / 2;
         y += gp.tileSize * 2;
         g2.drawString(text, x, y);
         if (commandNum == 0) {
@@ -245,7 +265,6 @@ public class UI {
         }
 
         text = "Quit";
-        x = gp.screenWidth / 2 - length/16;
         y += gp.tileSize;
         g2.drawString(text, x, y);
         if (commandNum == 1) {
@@ -339,7 +358,7 @@ public class UI {
         }
     }
 
-    public void drawZombieKillCounter() {
+    public void drawKillEnemiesBanner() {
 
         String text = "Kill Enemies!";
 
@@ -412,6 +431,10 @@ public class UI {
     }
 
     public void drawPauseScreen() {
+
+        g2.setColor(new Color(0, 0, 0, 120));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
         String text = "PAUSED";
 
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 80F));
@@ -437,7 +460,7 @@ public class UI {
 
 
         g2.drawImage(coin_img, x , y, gp.tileSize, gp.tileSize, null);
-        g2.drawString("x " + gp.player.coins + " / 3", 7*gp.tileSize / 4, 5*gp.tileSize / 2);
+        g2.drawString("x " + gp.player.coins + " / " + gp.player.maxCoins, 7*gp.tileSize / 4, 5*gp.tileSize / 2);
 
     }
 
