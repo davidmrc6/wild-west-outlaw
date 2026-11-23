@@ -67,8 +67,6 @@ public class Player extends Entity {
         solidArea.y = 24;
         solidArea.width = 31;
         solidArea.height = 42;
-        solidAreaDefaultX = solidArea.x;
-        solidAreaDefaultY = solidArea.y;
 
         setDefaultValues();
         getPlayerImage();
@@ -206,21 +204,21 @@ public class Player extends Entity {
                 walkAnimation.restart();
             }
 
-            // Check tile collision
-            collisionOn = false;
-            gp.collisionChecker.checkTile(this);
+            // Diagonal steps are shorter, so walking diagonally isn't faster than walking straight
+            int step = (direction.dx != 0 && direction.dy != 0) ? (int) Math.round(speed / Math.sqrt(2)) : speed;
+            int dx = direction.dx * step;
+            int dy = direction.dy * step;
 
             // Check monster collision
-            int monsterIndex = gp.collisionChecker.checkEntityCollision(this, gp.monster);
+            int monsterIndex = gp.collisionChecker.hitEntity(this, gp.monster, dx, dy);
             contactMonster(monsterIndex);
 
-            // Check npc collision (they just block the way, talking is done with Enter)
-            gp.collisionChecker.checkEntityCollision(this, gp.npc);
-
-            // If collision is false, player can move
-            if (collisionOn == false) {
-                worldX += direction.dx * speed;
-                worldY += direction.dy * speed;
+            // Move along x and y separately, so walking diagonally into a wall slides along it
+            if (canMove(dx, 0)) {
+                worldX += dx;
+            }
+            if (canMove(0, dy)) {
+                worldY += dy;
             }
 
             walkAnimation.update();
@@ -234,7 +232,7 @@ public class Player extends Entity {
         }
 
         // Check object collision (also when standing still)
-        int objIndex = gp.collisionChecker.checkObjectCollision(this, true);
+        int objIndex = gp.collisionChecker.checkObjectCollision(this);
         pickUpObject(objIndex);
 
         updateShooting();
@@ -327,6 +325,14 @@ public class Player extends Entity {
         };
 
         g2.drawImage(dust[frame / 2], x, y, 12, 12, null);
+    }
+
+    // Walls, townsfolk and monsters block the way
+    private boolean canMove(int dx, int dy) {
+        return (dx != 0 || dy != 0)
+            && !gp.collisionChecker.hitsWall(this, dx, dy)
+            && gp.collisionChecker.hitEntity(this, gp.npc, dx, dy) == CollisionChecker.NONE
+            && gp.collisionChecker.hitEntity(this, gp.monster, dx, dy) == CollisionChecker.NONE;
     }
 
     // Enter was pressed: talk to (or give a coin to) whoever the player is facing

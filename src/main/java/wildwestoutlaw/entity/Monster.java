@@ -32,8 +32,6 @@ public class Monster extends Entity {
         direction = Direction.DOWN;
 
         solidArea = new Rectangle(18, 12, 28, 44);
-        solidAreaDefaultX = solidArea.x;
-        solidAreaDefaultY = solidArea.y;
 
         animation = new Animation(10, 5, true);
         loadSprites("/mobs/" + type.folder, 10);

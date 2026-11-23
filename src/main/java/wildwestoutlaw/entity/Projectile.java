@@ -29,13 +29,6 @@ public class Projectile extends Entity {
 
         if (user == gp.player) {
 
-            //collision checker between projectile and structures - is buggy because the hitboxes are buggy
-            // gp.collisionChecker.checkTile(this);
-            // if (collisionOn == true) {
-            //     alive = false;
-            //     collisionOn = false;
-            // }
-
             int monsterIndex = gp.collisionChecker.checkEntityCollision(this, gp.monster);
             if (monsterIndex != CollisionChecker.NONE) {
                 gp.player.damageMonster(monsterIndex, attack);
@@ -45,6 +38,11 @@ public class Projectile extends Entity {
 
         worldX += direction.dx * speed;
         worldY += direction.dy * speed;
+
+        // Bullets stop at buildings
+        if (gp.collisionChecker.hitsWall(this, 0, 0)) {
+            alive = false;
+        }
 
         life --;
         if (life <= 0) {

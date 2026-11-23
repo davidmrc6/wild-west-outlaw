@@ -1,7 +1,9 @@
 package wildwestoutlaw;
 
+import java.awt.Rectangle;
+
 import wildwestoutlaw.entity.Entity;
-import wildwestoutlaw.tile.Tile;
+import wildwestoutlaw.object.SuperObject;
 
 public class CollisionChecker {
 
@@ -14,195 +16,61 @@ public class CollisionChecker {
         this.gp = gp;
     }
 
-    public void checkTile(Entity entity) {
-
-        int entityLeftWorldX = entity.worldX + entity.solidArea.x;
-        int entityRightWorldX = entity.worldX + entity.solidArea.x + entity.solidArea.width;
-        int entityTopWorldY = entity.worldY + entity.solidArea.y;
-        int entityBottomWorldY = entity.worldY + entity.solidArea.y + entity.solidArea.height;
-        
-        int entityLeftCol = entityLeftWorldX / gp.tileSize;
-        int entityRightCol = entityRightWorldX / gp.tileSize;
-        int entityTopRow = entityTopWorldY / gp.tileSize;
-        int entityBottomRow = entityBottomWorldY / gp.tileSize;
-
-        int tileNum1, tileNum2;
-        Tile tileA, tileB;
-
-        switch (entity.direction) {
-            case UP:
-                entityTopRow = (entityTopWorldY - entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileCollision.mapTileNum[entityLeftCol][entityTopRow];
-                tileNum2 = gp.tileCollision.mapTileNum[entityRightCol][entityTopRow];
-                tileA = gp.tileCollision.tile[tileNum1];
-                tileB = gp.tileCollision.tile[tileNum2];	
-                if ((tileA.hitbox.intersects(entity.solidArea) || (tileB.hitbox.intersects(entity.solidArea))) && (tileA.collision == true || tileB.collision == true)) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case DOWN:
-                entityBottomRow = (entityBottomWorldY + entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileCollision.mapTileNum[entityLeftCol][entityBottomRow];
-                tileNum2 = gp.tileCollision.mapTileNum[entityRightCol][entityBottomRow];
-                tileA = gp.tileCollision.tile[tileNum1];
-                tileB = gp.tileCollision.tile[tileNum2];
-                if ((tileA.hitbox.intersects(entity.solidArea) || (tileB.hitbox.intersects(entity.solidArea))) && (tileA.collision == true || tileB.collision == true)) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case LEFT:
-                entityLeftCol = (entityLeftWorldX - entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileCollision.mapTileNum[entityLeftCol][entityTopRow];
-                tileNum2 = gp.tileCollision.mapTileNum[entityLeftCol][entityBottomRow];
-                tileA = gp.tileCollision.tile[tileNum1];
-                tileB = gp.tileCollision.tile[tileNum2];
-                if ((tileA.hitbox.intersects(entity.solidArea) || (tileB.hitbox.intersects(entity.solidArea))) && (tileA.collision == true || tileB.collision == true)) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case RIGHT:
-                entityRightCol = (entityRightWorldX + entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileCollision.mapTileNum[entityRightCol][entityTopRow];
-                tileNum2 = gp.tileCollision.mapTileNum[entityRightCol][entityBottomRow];
-                tileA = gp.tileCollision.tile[tileNum1];
-                tileB = gp.tileCollision.tile[tileNum2];
-                if ((tileA.hitbox.intersects(entity.solidArea) || (tileB.hitbox.intersects(entity.solidArea))) && (tileA.collision == true || tileB.collision == true)) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case UP_LEFT:
-                entityTopRow = (entityTopWorldY - entity.speed) / gp.tileSize;
-                entityLeftCol = (entityLeftWorldX - entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileCollision.mapTileNum[entityLeftCol][entityTopRow];
-                tileA = gp.tileCollision.tile[tileNum1];
-                if (tileA.hitbox.intersects(entity.solidArea) && tileA.collision == true) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case UP_RIGHT:
-                entityTopRow = (entityTopWorldY - entity.speed) / gp.tileSize;
-                entityRightCol = (entityRightWorldX + entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileCollision.mapTileNum[entityRightCol][entityTopRow];
-                tileA = gp.tileCollision.tile[tileNum1];
-                if (tileA.hitbox.intersects(entity.solidArea) && tileA.collision == true) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case DOWN_LEFT:
-                entityBottomRow = (entityBottomWorldY + entity.speed) / gp.tileSize;
-                entityLeftCol = (entityLeftWorldX - entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileCollision.mapTileNum[entityLeftCol][entityBottomRow];
-                tileA = gp.tileCollision.tile[tileNum1];
-                if (tileA.hitbox.intersects(entity.solidArea) && tileA.collision == true) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case DOWN_RIGHT:
-                entityBottomRow = (entityBottomWorldY + entity.speed) / gp.tileSize;
-                entityRightCol = (entityRightWorldX + entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileCollision.mapTileNum[entityRightCol][entityBottomRow];
-                tileA = gp.tileCollision.tile[tileNum1];
-                if (tileA.hitbox.intersects(entity.solidArea) && tileA.collision == true) {
-                    entity.collisionOn = true;
-            }
-        }
-
+    // True if the entity's hitbox, moved by (dx, dy), would overlap a wall
+    public boolean hitsWall(Entity entity, int dx, int dy) {
+        Rectangle box = entity.worldHitbox();
+        box.translate(dx, dy);
+        return gp.tileCollision.collisionMap.isBlocked(box);
     }
 
-    public int checkEntityCollision(Entity entity, Entity[] target) {
-
-        int index = NONE;
-
-        for (int i = 0; i < target.length; i++) {
-
-            if (target[i] != null && target[i].isSolid()) {
-
-                entity.solidArea.x = entity.worldX + entity.solidArea.x;
-                entity.solidArea.y = entity.worldY + entity.solidArea.y;
-
-                target[i].solidArea.x = target[i].worldX + target[i].solidArea.x;
-                target[i].solidArea.y = target[i].worldY + target[i].solidArea.y;
-
-                entity.solidArea.x += entity.direction.dx * entity.speed;
-                entity.solidArea.y += entity.direction.dy * entity.speed;
-
-                if (entity.solidArea.intersects(target[i].solidArea)) {
-                    if (target[i] != entity) {
-                        entity.collisionOn = true;
-                        index = i;
-                    }
-                }
-
-                entity.solidArea.x = entity.solidAreaDefaultX;
-                entity.solidArea.y = entity.solidAreaDefaultY;
-                target[i].solidArea.x = target[i].solidAreaDefaultX;
-                target[i].solidArea.y = target[i].solidAreaDefaultY;
-
+    // The first solid target the entity's hitbox, moved by (dx, dy), would overlap, or NONE
+    public int hitEntity(Entity entity, Entity[] targets, int dx, int dy) {
+        Rectangle box = entity.worldHitbox();
+        box.translate(dx, dy);
+        for (int i = 0; i < targets.length; i++) {
+            if (targets[i] != null && targets[i] != entity && targets[i].isSolid() && box.intersects(targets[i].worldHitbox())) {
+                return i;
             }
+        }
+        return NONE;
+    }
+
+    // The checks below look one step ahead in the direction the entity is moving
+
+    public void checkTile(Entity entity) {
+        if (hitsWall(entity, entity.direction.dx * entity.speed, entity.direction.dy * entity.speed)) {
+            entity.collisionOn = true;
+        }
+    }
+
+    public int checkEntityCollision(Entity entity, Entity[] targets) {
+        int index = hitEntity(entity, targets, entity.direction.dx * entity.speed, entity.direction.dy * entity.speed);
+        if (index != NONE) {
+            entity.collisionOn = true;
         }
         return index;
     }
 
     public boolean checkPlayerCollision(Entity entity) {
-
-        boolean contactPlayer = false;
-
-        entity.solidArea.x = entity.worldX + entity.solidArea.x;
-        entity.solidArea.y = entity.worldY + entity.solidArea.y;
-
-        gp.player.solidArea.x = gp.player.worldX + gp.player.solidArea.x;
-        gp.player.solidArea.y = gp.player.worldY + gp.player.solidArea.y;
-
-        entity.solidArea.x += entity.direction.dx * entity.speed;
-        entity.solidArea.y += entity.direction.dy * entity.speed;
-
-        if (entity.solidArea.intersects(gp.player.solidArea)) {
-            if (gp.player != entity) {
-                entity.collisionOn = true;
-                contactPlayer = true;
-            }
+        Rectangle box = entity.worldHitbox();
+        box.translate(entity.direction.dx * entity.speed, entity.direction.dy * entity.speed);
+        if (entity != gp.player && box.intersects(gp.player.worldHitbox())) {
+            entity.collisionOn = true;
+            return true;
         }
-
-        entity.solidArea.x = entity.solidAreaDefaultX;
-        entity.solidArea.y = entity.solidAreaDefaultY;
-        gp.player.solidArea.x = gp.player.solidAreaDefaultX;
-        gp.player.solidArea.y = gp.player.solidAreaDefaultY;
-
-        return contactPlayer;
+        return false;
     }
 
-    public int checkObjectCollision(Entity entity, boolean player) {
-
-        int index = NONE;
-
+    // The object (e.g. a coin) the entity is standing on, or NONE
+    public int checkObjectCollision(Entity entity) {
+        Rectangle box = entity.worldHitbox();
         for (int i = 0; i < gp.objectList.size(); i++) {
-
-            if (gp.objectList.get(i) != null) {
-
-                entity.solidArea.x = entity.worldX + entity.solidArea.x;
-                entity.solidArea.y = entity.worldY + entity.solidArea.y;
-
-                gp.objectList.get(i).solidArea.x = gp.objectList.get(i).worldX + gp.objectList.get(i).solidArea.x;
-                gp.objectList.get(i).solidArea.y = gp.objectList.get(i).worldY + gp.objectList.get(i).solidArea.y;
-
-                entity.solidArea.x += entity.direction.dx * entity.speed;
-                entity.solidArea.y += entity.direction.dy * entity.speed;
-                if (entity.solidArea.intersects(gp.objectList.get(i).solidArea)) {
-                    if (gp.objectList.get(i).collision == true) {
-                        entity.collisionOn = true;
-                    }
-                    if (player == true) {
-                        index = i;
-                    }
-                }
-                entity.solidArea.x = entity.solidAreaDefaultX;
-                entity.solidArea.y = entity.solidAreaDefaultY;
-                gp.objectList.get(i).solidArea.x = gp.objectList.get(i).solidAreaDefaultX;
-                gp.objectList.get(i).solidArea.y = gp.objectList.get(i).solidAreaDefaultY;
+            SuperObject object = gp.objectList.get(i);
+            Rectangle objectBox = new Rectangle(object.worldX + object.solidArea.x, object.worldY + object.solidArea.y, object.solidArea.width, object.solidArea.height);
+            if (box.intersects(objectBox)) {
+                return i;
             }
         }
-
-        return index;
+        return NONE;
     }
-
 }

@@ -23,8 +23,6 @@ public class Npc extends Entity {
         super(gp);
 
         solidArea = new Rectangle(18, 12, 28, 44);
-        solidAreaDefaultX = solidArea.x;
-        solidAreaDefaultY = solidArea.y;
         direction = Direction.DOWN;
 
         sprites.put(Direction.DOWN, still("/npc/" + front + ".png"));

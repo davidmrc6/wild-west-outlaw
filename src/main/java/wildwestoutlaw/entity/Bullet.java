@@ -21,8 +21,6 @@ public class Bullet extends Projectile {
 
         // The sprite fills a whole tile with the bullet in the middle, so the hitbox sits in the middle too
         solidArea = new Rectangle(16, 16, 32, 32);
-        solidAreaDefaultX = solidArea.x;
-        solidAreaDefaultY = solidArea.y;
         animation = new Animation(2, 13, true);
 
         getImage();

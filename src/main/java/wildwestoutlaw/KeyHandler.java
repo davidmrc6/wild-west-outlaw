@@ -79,6 +79,11 @@ public class KeyHandler implements KeyListener {
 
     private void handlePress(int code) {
 
+        if (code == KeyEvent.VK_F3) {
+            gp.showHitboxes = !gp.showHitboxes;
+            return;
+        }
+
         switch (gp.gameState) {
 
             case TITLE -> {

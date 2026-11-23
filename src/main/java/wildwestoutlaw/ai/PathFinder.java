@@ -1,8 +1,10 @@
 package wildwestoutlaw.ai;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import wildwestoutlaw.GamePanel;
+import wildwestoutlaw.entity.Npc;
 
 public class PathFinder {
     
@@ -78,8 +80,7 @@ public class PathFinder {
 
         while (col < gp.maxWorldCol && row < gp.maxWorldRow) {
 
-            int tileNum = gp.tileCollision.mapTileNum[col][row];
-            if (gp.tileCollision.tile[tileNum].collision == true) {
+            if (gp.tileCollision.isTileBlocked(col, row)) {
                 node[col][row].solid = true;
             }
 
@@ -92,6 +93,21 @@ public class PathFinder {
                 row ++;
             }
         }
+
+        // Go around the townsfolk instead of getting stuck behind them
+        for (Npc npc : gp.npc) {
+            if (npc != null) {
+                Rectangle box = npc.worldHitbox();
+                for (int c = box.x / gp.tileSize; c <= (box.x + box.width - 1) / gp.tileSize; c++) {
+                    for (int r = box.y / gp.tileSize; r <= (box.y + box.height - 1) / gp.tileSize; r++) {
+                        node[c][r].solid = true;
+                    }
+                }
+            }
+        }
+
+        // The player is standing in the goal tile, so it can be reached even if part of it is a wall
+        goalNode.solid = false;
     }
 
     public void getCost(Node node) {

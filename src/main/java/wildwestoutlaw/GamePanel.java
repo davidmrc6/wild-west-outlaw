@@ -67,6 +67,7 @@ public class GamePanel extends JPanel implements Runnable {
     public PathFinder pathFinder = new PathFinder(this);
     public WaveSpawner spawner = new WaveSpawner(this);
     public boolean hasPlayerSeenTutorial = false;
+    public boolean showHitboxes = false; // F3
 
     // Game state
     public GameState gameState;
@@ -91,7 +92,7 @@ public class GamePanel extends JPanel implements Runnable {
             }
         });
         this.setFocusable(true);
-        tileCollision = new TileManager(this, "/tile/hitboxes.txt");
+        tileCollision = new TileManager(this);
         setupGame();
     }
 
@@ -321,6 +322,10 @@ public class GamePanel extends JPanel implements Runnable {
 
             // PLAYER
             player.draw(g2);
+
+            if (showHitboxes) {
+                DebugOverlay.draw(g2, this);
+            }
 
             // UI
             ui.draw(g2);
