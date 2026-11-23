@@ -373,7 +373,7 @@ public class Player extends Entity {
         Rectangle reach = worldHitbox();
         reach.translate(direction.dx * REACH, direction.dy * REACH);
         for (Npc npc : gp.npc) {
-            if (npc != null && reach.intersects(npc.worldHitbox())) {
+            if (npc != null && npc.isSolid() && reach.intersects(npc.worldHitbox())) {
                 return npc;
             }
         }

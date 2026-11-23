@@ -121,7 +121,7 @@ public class Monster extends Entity {
         int startCol = (worldX + solidArea.x) / gp.tileSize;
         int startRow = (worldY + solidArea.y) / gp.tileSize;
 
-         gp.pathFinder.setNodes(startCol, startRow, goalCol, goalRow);
+         gp.pathFinder.setNodes(startCol, startRow, goalCol, goalRow, this);
 
          if (gp.pathFinder.search() == true) {
 

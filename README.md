@@ -58,6 +58,7 @@ Here are some tips to enhance your gaming experience:
 
 - To progress in the game, walk up to other characters and press the `Enter` key to initiate conversations or interactions (keep pressing it to go through a conversation).
 - Start your adventure by talking to the bartender, who can provide valuable information and quests to kickstart your journey as an outlaw in the wild west.
+- Keep the monsters away from the townsfolk: they hide indoors when monsters come close, and only come back out once the wave is over.
 
 ## Learning Topics
 

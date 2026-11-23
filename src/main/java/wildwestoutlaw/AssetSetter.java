@@ -38,22 +38,23 @@ public class AssetSetter {
         new Coin(gp);
     }
 
+    // Everyone has a home spot to wander around, and a door (column, row of the tile in front of it) to hide behind
     public void setNPC() {
         gp.npc[0] = new Bartender(gp);
-        gp.npc[0].worldX = gp.worldWidth / 2 - gp.tileSize / 2 + gp.tileSize;
-        gp.npc[0].worldY = gp.worldHeight - (gp.tileSize * 8) - gp.tileSize / 2;
+        gp.npc[0].placeAt(gp.worldWidth / 2 - gp.tileSize / 2 + gp.tileSize, gp.worldHeight - (gp.tileSize * 8) - gp.tileSize / 2);
+        gp.npc[0].setDoor(22, 29); // the saloon
 
-        gp.npc[1] = new Townsperson(gp, "farmer front", "farmer back", "farmerNPC left", "farmerNPC right");
-        gp.npc[1].worldX = gp.worldWidth - gp.tileSize * 10;
-        gp.npc[1].worldY = gp.worldHeight / 2 + 2 * gp.tileSize;
+        gp.npc[1] = Townsperson.farmer(gp);
+        gp.npc[1].placeAt(gp.worldWidth - gp.tileSize * 10, gp.worldHeight / 2 + 2 * gp.tileSize);
+        gp.npc[1].setDoor(38, 20);
 
-        gp.npc[2] = new Townsperson(gp, "femaleNPC front", "femaleNPC back", "femaleNPC left", "femaleNPC right");
-        gp.npc[2].worldX = 7 * gp.tileSize;
-        gp.npc[2].worldY = gp.worldHeight - (gp.tileSize * 8) - gp.tileSize / 4;
+        gp.npc[2] = Townsperson.neighbour(gp);
+        gp.npc[2].placeAt(7 * gp.tileSize, gp.worldHeight - (gp.tileSize * 8) - gp.tileSize / 4);
+        gp.npc[2].setDoor(11, 29);
 
-        gp.npc[3] = new Townsperson(gp, "femaleNPC front", "femaleNPC back", "femaleNPC left", "femaleNPC right");
-        gp.npc[3].worldX = gp.worldWidth / 2 - 6 * gp.tileSize;
-        gp.npc[3].worldY = gp.worldHeight / 2 + 2 * gp.tileSize;
+        gp.npc[3] = Townsperson.hotelOwner(gp);
+        gp.npc[3].placeAt(gp.worldWidth / 2 - 6 * gp.tileSize, gp.worldHeight / 2 + 2 * gp.tileSize);
+        gp.npc[3].setDoor(18, 20); // the hotel
     }
 
     // Puts one new monster in the first free slot. Returns false if there is no room right now.

@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import wildwestoutlaw.GamePanel;
+import wildwestoutlaw.entity.Entity;
 import wildwestoutlaw.entity.Npc;
 
 public class PathFinder {
@@ -66,7 +67,8 @@ public class PathFinder {
         step = 0;
     }
 
-    public void setNodes(int startCol, int startRow, int goalCol, int goalRow) {
+    // mover: whoever is looking for the path (so a townsperson doesn't block their own way)
+    public void setNodes(int startCol, int startRow, int goalCol, int goalRow, Entity mover) {
         
         resetNodes();
 
@@ -96,7 +98,7 @@ public class PathFinder {
 
         // Go around the townsfolk instead of getting stuck behind them
         for (Npc npc : gp.npc) {
-            if (npc != null) {
+            if (npc != null && npc != mover && npc.isSolid()) {
                 Rectangle box = npc.worldHitbox();
                 for (int c = box.x / gp.tileSize; c <= (box.x + box.width - 1) / gp.tileSize; c++) {
                     for (int r = box.y / gp.tileSize; r <= (box.y + box.height - 1) / gp.tileSize; r++) {

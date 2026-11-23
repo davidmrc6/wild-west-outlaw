@@ -75,6 +75,7 @@ public class UI {
             drawWantedStars();
             drawReputation();
             drawCoinCounter();
+            drawSpeechBubbles();
             drawInteractHint();
         }
         // PAUSE STATE
@@ -394,6 +395,29 @@ public class UI {
         g2.drawString(text, x + 2, y + 2);
         g2.setColor(Color.white);
         g2.drawString(text, x, y);
+    }
+
+    // Short lines above the townsfolk's heads, like "Thank you kindly!"
+    public void drawSpeechBubbles() {
+
+        g2.setFont(pixeloid.deriveFont(Font.PLAIN, 18F));
+        for (Npc npc : gp.npc) {
+            String text = npc != null ? npc.speech() : null;
+            if (text == null) {
+                continue;
+            }
+            int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+            int width = length + 24;
+            int x = npc.screenX() + gp.tileSize / 2 - width / 2;
+            int y = npc.screenY() - 64; // above the "Enter: ..." hint
+
+            g2.setColor(new Color(0, 0, 0, 200));
+            g2.fillRoundRect(x, y, width, 34, 14, 14);
+            g2.setColor(Color.white);
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRoundRect(x + 2, y + 2, width - 4, 30, 10, 10);
+            g2.drawString(text, x + 12, y + 24);
+        }
     }
 
     public void drawDialogueScreen() {
