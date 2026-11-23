@@ -93,6 +93,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void setupGame() {
+        aSetter.preload();
         aSetter.setNPC();
         tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_RGB);
         g2 = tempScreen.createGraphics();
@@ -115,7 +116,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         // "Retry" starts the music over, going back to the title screen stops it
         if (gameState == GameState.PLAY) {
-            playMusic(0);
+            playMusic();
         } else {
             stopMusic();
         }
@@ -204,7 +205,7 @@ public class GamePanel extends JPanel implements Runnable {
                     }
                     if (monster[i].alive == true && monster[i].damaged == true) {
                         damageEffectList.add(new DamageEffect(this, monster[i]));
-                        playSE(7);
+                        playSE(SoundEffect.MONSTER_HIT);
                         monster[i].damaged = false;
                     }
                     if (monster[i].alive == false) {
@@ -212,7 +213,7 @@ public class GamePanel extends JPanel implements Runnable {
                             player.wanted ++;
                         monster[i] = null;
                         explosionList.add(new Explosion(this, worldX, worldY));
-                        playSE(3);
+                        playSE(SoundEffect.MONSTER_DEATH);
 
                         OBJ_coin newCoin = new OBJ_coin(this);
                         newCoin.worldX = worldX;
@@ -254,7 +255,7 @@ public class GamePanel extends JPanel implements Runnable {
             while (iterator.hasNext()) {
                 Explosion explosion = iterator.next();
                 explosion.update();
-                if (explosion.frame >= 8) {
+                if (explosion.isFinished()) {
                     iterator.remove();
                 }
             }
@@ -262,7 +263,7 @@ public class GamePanel extends JPanel implements Runnable {
             while (iterator1.hasNext()) {
                 DamageEffect damageEffect = iterator1.next();
                 damageEffect.update();
-                if (damageEffect.frame >= 4) {
+                if (damageEffect.isFinished()) {
                     iterator1.remove();
                 }
             }
@@ -351,15 +352,15 @@ public class GamePanel extends JPanel implements Runnable {
         Toolkit.getDefaultToolkit().sync(); // smoother animation on Linux
     }
 
-    public void playMusic(int i) {
-        sound.playMusic(i);
+    public void playMusic() {
+        sound.playMusic();
     }
 
     public void stopMusic() {
         sound.stopMusic();
     }
 
-    public void playSE(int i) {
-        sound.playEffect(i);
+    public void playSE(SoundEffect effect) {
+        sound.play(effect);
     }
 }

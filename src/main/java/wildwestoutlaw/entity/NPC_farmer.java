@@ -3,8 +3,6 @@ package wildwestoutlaw.entity;
 import wildwestoutlaw.GamePanel;
 
 import java.awt.Rectangle;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import java.util.Random;
 
 public class NPC_farmer extends Entity {
@@ -30,23 +28,16 @@ public class NPC_farmer extends Entity {
         worldX = gp.worldWidth / 2 - gp.tileSize / 2;
         worldY = gp.worldHeight / 2 - gp.tileSize / 2;
         speed = 2;
-        direction = "down";
-        isIdle = true;
+        direction = Direction.DOWN;
         type = 1;
         doesCollectCoins = true;
     }
 
     public void getNPCImage() {
-        try {
-
-            right1 = ImageIO.read(getClass().getResourceAsStream("/npc/farmerNPC right.png"));
-            left1 = ImageIO.read(getClass().getResourceAsStream("/npc/farmerNPC left.png"));
-            up1 = ImageIO.read(getClass().getResourceAsStream("/npc/farmer back.png"));
-            down1 = ImageIO.read(getClass().getResourceAsStream("/npc/farmer front.png"));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        sprites.put(Direction.RIGHT, still("/npc/farmerNPC right.png"));
+        sprites.put(Direction.LEFT, still("/npc/farmerNPC left.png"));
+        sprites.put(Direction.UP, still("/npc/farmer back.png"));
+        sprites.put(Direction.DOWN, still("/npc/farmer front.png"));
     }
 
     public void setAction() {
@@ -58,13 +49,13 @@ public class NPC_farmer extends Entity {
             int i = random.nextInt(100) + 1;
 
             if (i <= 25)
-                direction = "up";
+                direction = Direction.UP;
             if (i > 25 && i <= 100)
-                direction = "down";
+                direction = Direction.DOWN;
             if (i > 50 && i <= 75)
-                direction = "left";
+                direction = Direction.LEFT;
             if (i > 75 && i <= 100)
-                direction = "right";
+                direction = Direction.RIGHT;
 
             actionLockCounter = 0;
         }

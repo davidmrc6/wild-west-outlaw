@@ -1,6 +1,9 @@
 package wildwestoutlaw;
 
-import java.net.URL;
+import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -13,9 +16,11 @@ import javax.sound.sampled.LineEvent;
 
 public class Sound {
 
-    URL soundURL[] = new URL[30];
-    private final AudioFormat[] formats = new AudioFormat[30];
-    private final byte[][] data = new byte[30][];
+    private static final String MUSIC = "/sound/background music.wav";
+    private static final float VOLUME = -20.0f; // decibels
+
+    private final Map<String, AudioFormat> formats = new HashMap<>();
+    private final Map<String, byte[]> data = new HashMap<>();
     private Clip music;
     private boolean errorReported = false;
 
@@ -27,38 +32,22 @@ public class Sound {
     });
 
     public Sound() {
-
-        soundURL[0] = getClass().getResource("/sound/background music.wav");
-        soundURL[1] = getClass().getResource("/sound/coin get.wav");
-        soundURL[2] = getClass().getResource("/sound/coin given.wav");
-        soundURL[3] = getClass().getResource("/sound/death explosion.wav");
-        soundURL[4] = getClass().getResource("/sound/dialogue.wav");
-        soundURL[5] = getClass().getResource("/sound/game over.wav");
-        soundURL[6] = getClass().getResource("/sound/game won.wav");
-        soundURL[7] = getClass().getResource("/sound/hit explosion.wav");
-        soundURL[8] = getClass().getResource("/sound/player damaged.wav");
-        soundURL[9] = getClass().getResource("/sound/player shot.wav");
-        soundURL[10] = getClass().getResource("/sound/walk on sand.wav");
-        soundURL[11] = getClass().getResource("/sound/kill monsters.wav");
-        soundURL[12] = getClass().getResource("/sound/menu button.wav");
-        soundURL[13] = getClass().getResource("/sound/choose button.wav");
-
         soundThread.execute(this::loadAll);
     }
 
-    public void playEffect(int i) {
+    public void play(SoundEffect effect) {
         soundThread.execute(() -> {
-            Clip clip = open(i);
+            Clip clip = open(effect.path);
             if (clip != null) {
                 clip.start();
             }
         });
     }
 
-    public void playMusic(int i) {
+    public void playMusic() {
         soundThread.execute(() -> {
             stopMusicNow();
-            music = open(i);
+            music = open(MUSIC);
             if (music != null) {
                 music.loop(Clip.LOOP_CONTINUOUSLY);
             }
@@ -78,15 +67,9 @@ public class Sound {
 
     // Loads every sound once and starts the audio system early (its first start is slow)
     private void loadAll() {
-        for (int i = 0; i < soundURL.length; i++) {
-            if (soundURL[i] != null) {
-                try (AudioInputStream ais = AudioSystem.getAudioInputStream(soundURL[i])) {
-                    formats[i] = ais.getFormat();
-                    data[i] = ais.readAllBytes();
-                } catch (Exception e) {
-                    reportError(soundURL[i], e);
-                }
-            }
+        load(MUSIC);
+        for (SoundEffect effect : SoundEffect.values()) {
+            load(effect.path);
         }
         try {
             AudioSystem.getClip().close();
@@ -95,17 +78,32 @@ public class Sound {
         }
     }
 
-    Clip open(int i) {
-        if (data[i] == null) {
+    private void load(String path) {
+        try (InputStream in = getClass().getResourceAsStream(path)) {
+            if (in == null) {
+                throw new IllegalStateException("Missing game file: " + path);
+            }
+            try (AudioInputStream ais = AudioSystem.getAudioInputStream(new BufferedInputStream(in))) {
+                formats.put(path, ais.getFormat());
+                data.put(path, ais.readAllBytes());
+            }
+        } catch (Exception e) {
+            reportError(path, e);
+        }
+    }
+
+    Clip open(String path) {
+        byte[] sound = data.get(path);
+        if (sound == null) {
             return null;
         }
         try {
             Clip clip = AudioSystem.getClip();
-            clip.open(formats[i], data[i], 0, data[i].length);
+            clip.open(formats.get(path), sound, 0, sound.length);
 
             if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                volume.setValue(-20.0f);
+                volume.setValue(VOLUME);
             }
 
             // Give the audio line back once the clip has finished or was stopped
@@ -117,15 +115,15 @@ public class Sound {
             return clip;
 
         } catch (Exception e) {
-            reportError(soundURL[i], e);
+            reportError(path, e);
             return null;
         }
     }
 
     // e.g. no audio device: the game keeps running without sound
-    private void reportError(URL sound, Exception e) {
+    private void reportError(String path, Exception e) {
         if (!errorReported) {
-            System.err.println("Could not play sound" + (sound != null ? " " + sound : "") + ": " + e);
+            System.err.println("Could not play sound" + (path != null ? " " + path : "") + ": " + e);
             errorReported = true;
         }
     }

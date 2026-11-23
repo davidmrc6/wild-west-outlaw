@@ -1,6 +1,7 @@
 package wildwestoutlaw.entity;
 
 import wildwestoutlaw.GamePanel;
+import wildwestoutlaw.SoundEffect;
 
 public class Projectile extends Entity {
 
@@ -10,7 +11,7 @@ public class Projectile extends Entity {
         super(gp);
     }
 
-    public void set(int worldX, int worldY, String direction, boolean alive, Entity user) {
+    public void set(int worldX, int worldY, Direction direction, boolean alive, Entity user) {
 
         this.worldX = worldX;
         this.worldY = worldY;
@@ -18,7 +19,8 @@ public class Projectile extends Entity {
         this.alive = alive;
         this.user = user;
         this.life = this.maxLife;
-        gp.playSE(9);
+        animation.restart();
+        gp.playSE(SoundEffect.GUNSHOT);
 
     }
 
@@ -40,30 +42,15 @@ public class Projectile extends Entity {
             }
         }
 
-        switch (direction) {
-            case "up": worldY -= speed; break;
-            case "down": worldY += speed; break;
-            case "left": worldX -= speed; break;
-            case "right": worldX += speed; break;
-            case "upright": worldY -= speed; worldX += speed; break;
-            case "upleft": worldY -= speed; worldX -= speed; break;
-            case "downright": worldY += speed; worldX += speed; break;
-            case "downleft": worldY += speed; worldX -= speed; break;
-        }
+        worldX += direction.dx * speed;
+        worldY += direction.dy * speed;
 
         life --;
         if (life <= 0) {
             alive = false;
         }
 
-        spriteCounter ++;
-        if (spriteCounter > 12) {
-            if (spriteNumber == 1)
-                spriteNumber = 2;
-            else if (spriteNumber == 2)
-                spriteNumber = 1;
-            spriteCounter = 0;
-        }
+        animation.update();
         
     }
 

@@ -84,10 +84,10 @@ public class KeyHandler implements KeyListener {
             case TITLE -> {
                 moveMenuCursor(code);
                 if (code == KeyEvent.VK_ENTER) {
-                    gp.playSE(13);
+                    gp.playSE(SoundEffect.MENU_SELECT);
                     if (gp.ui.commandNum == 0) {
                         gp.gameState = gp.hasPlayerSeenTutorial ? GameState.PLAY : GameState.TUTORIAL;
-                        gp.playMusic(0);
+                        gp.playMusic();
                     }
                     if (gp.ui.commandNum == 1) {
                         System.exit(0);
@@ -97,7 +97,7 @@ public class KeyHandler implements KeyListener {
 
             case TUTORIAL -> {
                 if (code == KeyEvent.VK_ENTER) {
-                    gp.playSE(13);
+                    gp.playSE(SoundEffect.MENU_SELECT);
                     gp.gameState = GameState.PLAY;
                     gp.hasPlayerSeenTutorial = true;
                 }
@@ -105,14 +105,14 @@ public class KeyHandler implements KeyListener {
 
             case PLAY -> {
                 if (code == KeyEvent.VK_P) {
-                    gp.playSE(13);
+                    gp.playSE(SoundEffect.MENU_SELECT);
                     gp.gameState = GameState.PAUSE;
                 }
             }
 
             case PAUSE -> {
                 if (code == KeyEvent.VK_P) {
-                    gp.playSE(13);
+                    gp.playSE(SoundEffect.MENU_SELECT);
                     gp.gameState = GameState.PLAY;
                 }
             }
@@ -126,7 +126,7 @@ public class KeyHandler implements KeyListener {
             case GAME_OVER -> {
                 moveMenuCursor(code);
                 if (code == KeyEvent.VK_ENTER) {
-                    gp.playSE(13);
+                    gp.playSE(SoundEffect.MENU_SELECT);
                     if (gp.ui.commandNum == 0) {
                         gp.gameState = GameState.PLAY; // Retry
                     }
@@ -139,7 +139,7 @@ public class KeyHandler implements KeyListener {
 
             case GAME_WON -> {
                 if (code == KeyEvent.VK_ENTER) {
-                    gp.playSE(13);
+                    gp.playSE(SoundEffect.MENU_SELECT);
                     gp.gameState = GameState.TITLE;
                     gp.restart();
                 }
@@ -150,13 +150,13 @@ public class KeyHandler implements KeyListener {
     // W and S move between the two options of the title and game over menus
     private void moveMenuCursor(int code) {
         if (code == KeyEvent.VK_W) {
-            gp.playSE(12);
+            gp.playSE(SoundEffect.MENU_MOVE);
             gp.ui.commandNum --;
             if (gp.ui.commandNum < 0)
                 gp.ui.commandNum = 1;
         }
         if (code == KeyEvent.VK_S) {
-            gp.playSE(12);
+            gp.playSE(SoundEffect.MENU_MOVE);
             gp.ui.commandNum ++;
             if (gp.ui.commandNum > 1)
                 gp.ui.commandNum = 0;

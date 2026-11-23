@@ -3,8 +3,7 @@ package wildwestoutlaw.entity;
 import java.awt.Rectangle;
 import java.util.Random;
 
-import javax.imageio.ImageIO;
-
+import wildwestoutlaw.Animation;
 import wildwestoutlaw.GamePanel;
 
 public class MON_cactus extends Entity {
@@ -14,8 +13,7 @@ public class MON_cactus extends Entity {
 
         name = "cactus";
         speed = 3;
-        direction = "down";
-        defense = 0;
+        direction = Direction.DOWN;
         life = 4;
         maxLife = life;
         alive = true;
@@ -31,57 +29,13 @@ public class MON_cactus extends Entity {
         solidAreaDefaultX = solidArea.x;
         solidAreaDefaultY = solidArea.y;
         onPath = true;
+        animation = new Animation(10, 5, true);
 
         getImage();
     }
 
     public void getImage() {
-        try {
-            
-            right1 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 1.png"));
-            right2 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 2.png"));
-            right3 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 3.png"));
-            right4 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 4.png"));
-            right5 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 5.png"));
-            right6 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 6.png"));
-            right7 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 7.png"));
-            right8 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 8.png"));
-            right9 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 9.png"));
-            right10 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/right 10.png"));
-            left1 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 1.png"));
-            left2 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 2.png"));
-            left3 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 3.png"));
-            left4 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 4.png"));
-            left5 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 5.png"));
-            left6 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 6.png"));
-            left7 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 7.png"));
-            left8 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 8.png"));
-            left9 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 9.png"));
-            left10 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/left 10.png"));
-            up1 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 1.png"));
-            up2 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 2.png"));
-            up3 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 3.png"));
-            up4 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 4.png"));
-            up5 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 5.png"));
-            up6 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 6.png"));
-            up7 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 7.png"));
-            up8 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 8.png"));
-            up9 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 9.png"));
-            up10 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/back 10.png"));
-            down1 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 1.png"));
-            down2 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 2.png"));
-            down3 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 3.png"));
-            down4 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 4.png"));
-            down5 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 5.png"));
-            down6 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 6.png"));
-            down7 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 7.png"));
-            down8 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 8.png"));
-            down9 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 9.png"));
-            down10 = ImageIO.read(getClass().getResourceAsStream("/mobs/cactus/front 10.png"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadSprites("/mobs/cactus", 10);
     }
     
     public void setAction() {
@@ -104,13 +58,13 @@ public class MON_cactus extends Entity {
                 int i = random.nextInt(100) + 1;
 
                 if (i <= 25)
-                    direction = "up";
+                    direction = Direction.UP;
                 if (i > 25 && i <= 100)
-                    direction = "down";
+                    direction = Direction.DOWN;
                 if (i > 50 && i <= 75)
-                    direction = "left";
+                    direction = Direction.LEFT;
                 if (i > 75 && i <= 100)
-                    direction = "right";
+                    direction = Direction.RIGHT;
 
                 actionLockCounter = 0;
             }
