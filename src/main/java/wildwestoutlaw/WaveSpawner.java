@@ -38,8 +38,7 @@ public class WaveSpawner {
         // A wave is still coming in
         if (monstersToSpawn > 0) {
             spawnTimer--;
-            if (spawnTimer <= 0) {
-                gp.aSetter.spawnMonster();
+            if (spawnTimer <= 0 && gp.aSetter.spawnMonster()) { // if every spot is taken, try again next frame
                 monstersToSpawn--;
                 spawnTimer = SPAWN_INTERVAL;
             }

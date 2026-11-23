@@ -1,4 +1,4 @@
-package wildwestoutlaw.object;
+package wildwestoutlaw.entity;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -6,12 +6,10 @@ import java.awt.image.BufferedImage;
 import wildwestoutlaw.Animation;
 import wildwestoutlaw.Assets;
 import wildwestoutlaw.GamePanel;
-import wildwestoutlaw.entity.Direction;
-import wildwestoutlaw.entity.Projectile;
 
-public class OBJ_bullet extends Projectile {
+public class Bullet extends Projectile {
 
-    public OBJ_bullet(GamePanel gp) {
+    public Bullet(GamePanel gp) {
         super(gp);
 
         name = "Bullet";

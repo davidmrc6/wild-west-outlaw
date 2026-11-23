@@ -1,6 +1,5 @@
 package wildwestoutlaw.entity;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -26,8 +25,6 @@ public class Entity {
 
     public Direction direction = Direction.DOWN;
 
-    public int actionLockCounter = 0;
-
     public Rectangle solidArea = new Rectangle(0, 0, 32, 32);
     public int solidAreaDefaultX;
     public int solidAreaDefaultY;
@@ -36,26 +33,7 @@ public class Entity {
     public int maxLife;
     public int life;
     public boolean alive = false;
-    public boolean dying = false;
-    public boolean damaged = false;
-    public boolean invincible = false;
-    public boolean onPath = true;
     public int attack;
-    public Projectile projectile;
-    public int shotAvailableCounter = 0;
-    public int invincibleCounter;
-    public int type;
-    public int reputation;
-    public int maxReputation;
-    public int wanted;
-    public int maxWanted;
-    public int coins;
-    public int maxCoins;
-    public int dialogueIndex = 0;
-    public boolean hasGameJustStarted = true;
-    public boolean hasDialogue = false;
-    public boolean doesCollectCoins = false;
-    public String dialogues[] = new String[20];
 
     public Entity(GamePanel gp) {
         this.gp = gp;
@@ -79,122 +57,57 @@ public class Entity {
         return sprites.get(Direction.DOWN)[0];
     }
 
+    // Whether other things bump into it
+    public boolean isSolid() {
+        return true;
+    }
+
+    // The hitbox in world coordinates
+    public Rectangle worldHitbox() {
+        return new Rectangle(worldX + solidAreaDefaultX, worldY + solidAreaDefaultY, solidArea.width, solidArea.height);
+    }
+
+    public int screenX() {
+        return worldX - gp.player.worldX + gp.player.screenX;
+    }
+
+    public int screenY() {
+        return worldY - gp.player.worldY + gp.player.screenY;
+    }
+
+    protected boolean isOnScreen() {
+        return worldX + gp.tileSize > gp.player.worldX - gp.player.screenX &&
+               worldX - gp.tileSize < gp.player.worldX + gp.player.screenX &&
+               worldY + gp.tileSize > gp.player.worldY - gp.player.screenY &&
+               worldY - gp.tileSize < gp.player.worldY + gp.player.screenY;
+    }
+
+    protected BufferedImage currentImage() {
+        return sprites.get(direction)[animation.frame()];
+    }
+
     public void draw(Graphics2D g2) {
-
-        int screenX = worldX - gp.player.worldX + gp.player.screenX;
-        int screenY = worldY - gp.player.worldY + gp.player.screenY;
-
-        if (worldX + gp.tileSize > gp.player.worldX - gp.player.screenX &&
-            worldX - gp.tileSize < gp.player.worldX + gp.player.screenX &&
-            worldY + gp.tileSize > gp.player.worldY - gp.player.screenY &&
-            worldY - gp.tileSize < gp.player.worldY + gp.player.screenY) {
-
-                BufferedImage image = sprites.get(direction)[animation.frame()];
-
-                // Monster health bar
-                if (type == 2) {
-
-                    double oneScale = (double)gp.tileSize / maxLife;
-                    double hpBarValue = oneScale * life;
-
-                    g2.setColor(new Color(35, 35, 35));
-                    g2.fillRect(screenX - 1, screenY - 11, gp.tileSize + 2, 6);
-                    g2.setColor(new Color(255, 0, 80));
-                    g2.fillRect(screenX, screenY - 10, (int)hpBarValue, 4);
-                }
-
-                g2.drawImage(image, screenX, screenY, null);
-            }
-
+        if (isOnScreen()) {
+            g2.drawImage(currentImage(), screenX(), screenY(), null);
+        }
     }
 
     public void setAction() {}
 
-    public void speak() {}
-
-    public void checkCollision() {
+    // Returns true if it is touching the player
+    public boolean checkCollision() {
 
         collisionOn = false;
         gp.collisionChecker.checkTile(this);
         boolean contactPlayer = gp.collisionChecker.checkPlayerCollision(this);
         gp.collisionChecker.checkEntityCollision(this, gp.monster);
         gp.collisionChecker.checkEntityCollision(this, gp.npc);
-
-        if (this.type == 2 && contactPlayer == true) {
-            gp.player.takeDamage(attack);
-        }
+        return contactPlayer;
     }
 
     public void update() {
-
         setAction();
         checkCollision();
-
-        if (collisionOn == false && type == 2) {
-            worldX += direction.dx * speed;
-            worldY += direction.dy * speed;
-            animation.update();
-        }
-    }
-
-    public void searchPath(int goalCol, int goalRow) {
-
-        int startCol = (worldX + solidArea.x) / gp.tileSize;
-        int startRow = (worldY + solidArea.y) / gp.tileSize;
-
-         gp.pathFinder.setNodes(startCol, startRow, goalCol, goalRow);
-
-         if (gp.pathFinder.search() == true) {
-
-             int nextX = gp.pathFinder.pathList.get(0).col * gp.tileSize;
-             int nextY = gp.pathFinder.pathList.get(0).row * gp.tileSize;
-
-             int enLeftX = worldX + solidArea.x;
-             int enRightX = worldX + solidArea.x + solidArea.width;
-             int enTopY = worldY + solidArea.y;
-             int enBottomY = worldY + solidArea.y + solidArea.height;
-
-             if (enTopY > nextY && enLeftX > nextX && enRightX < nextX + gp.tileSize) {
-                 direction = Direction.UP;
-             }
-             else if (enTopY < nextY && enLeftX > nextX && enRightX < nextX + gp.tileSize) {
-                 direction = Direction.DOWN;
-             }
-             else if (enTopY >= nextY && enBottomY < nextY + gp.tileSize) {
-                 if (enLeftX > nextX)
-                     direction = Direction.LEFT;
-                 if (enLeftX < nextX)
-                     direction = Direction.RIGHT;
-             }
-             else if (enTopY > nextY && enLeftX > nextX) {
-                 direction = Direction.UP;
-                 checkCollision();
-                 if (collisionOn == true) {
-                     direction = Direction.LEFT;
-                 }
-             }
-             else if (enTopY > nextY && enLeftX < nextX) {
-                 direction = Direction.UP;
-                 checkCollision();
-                 if (collisionOn == true) {
-                     direction = Direction.RIGHT;
-                 }
-             }
-             else if (enTopY < nextY && enLeftX > nextX) {
-                 direction = Direction.DOWN;
-                 checkCollision();
-                 if (collisionOn == true) {
-                     direction = Direction.LEFT;
-                 }
-             }
-             else if (enTopY < nextY && enLeftX < nextX) {
-                 direction = Direction.DOWN;
-                 checkCollision();
-                 if (collisionOn == true) {
-                     direction = Direction.RIGHT;
-                 }
-             }
-         }
     }
 
 }

@@ -1,5 +1,6 @@
 package wildwestoutlaw.entity;
 
+import wildwestoutlaw.CollisionChecker;
 import wildwestoutlaw.GamePanel;
 import wildwestoutlaw.SoundEffect;
 
@@ -36,7 +37,7 @@ public class Projectile extends Entity {
             // }
 
             int monsterIndex = gp.collisionChecker.checkEntityCollision(this, gp.monster);
-            if (monsterIndex != 999) {
+            if (monsterIndex != CollisionChecker.NONE) {
                 gp.player.damageMonster(monsterIndex, attack);
                 alive = false;
             }
