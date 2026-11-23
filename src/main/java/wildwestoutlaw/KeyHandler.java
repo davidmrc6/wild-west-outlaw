@@ -13,6 +13,7 @@ public class KeyHandler implements KeyListener {
 
     // Keys currently held down (the player reads these every frame)
     public boolean upPressed, downPressed, rightPressed, leftPressed, spacePressed;
+    public boolean aimUp, aimDown, aimLeft, aimRight; // arrow keys: shoot in that direction
 
     private final Queue<KeyEvent> events = new ConcurrentLinkedQueue<>();
     private final Set<Integer> heldKeys = new HashSet<>();
@@ -64,6 +65,7 @@ public class KeyHandler implements KeyListener {
             focusLost = false;
             heldKeys.clear();
             upPressed = downPressed = leftPressed = rightPressed = spacePressed = false;
+            aimUp = aimDown = aimLeft = aimRight = false;
         }
     }
 
@@ -74,6 +76,10 @@ public class KeyHandler implements KeyListener {
             case KeyEvent.VK_S -> downPressed = held;
             case KeyEvent.VK_D -> rightPressed = held;
             case KeyEvent.VK_SPACE -> spacePressed = held;
+            case KeyEvent.VK_UP -> aimUp = held;
+            case KeyEvent.VK_DOWN -> aimDown = held;
+            case KeyEvent.VK_LEFT -> aimLeft = held;
+            case KeyEvent.VK_RIGHT -> aimRight = held;
         }
     }
 
@@ -167,15 +173,15 @@ public class KeyHandler implements KeyListener {
         }
     }
 
-    // W and S move between the two options of the title and game over menus
+    // W/S (or the arrow keys) move between the two options of the title and game over menus
     private void moveMenuCursor(int code) {
-        if (code == KeyEvent.VK_W) {
+        if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
             gp.playSE(SoundEffect.MENU_MOVE);
             gp.ui.commandNum --;
             if (gp.ui.commandNum < 0)
                 gp.ui.commandNum = 1;
         }
-        if (code == KeyEvent.VK_S) {
+        if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
             gp.playSE(SoundEffect.MENU_MOVE);
             gp.ui.commandNum ++;
             if (gp.ui.commandNum > 1)

@@ -20,6 +20,7 @@ public class AssetSetter {
         {41, 13}, {6, 22}, {41, 25}, {9, 30}, {40, 30}
     };
     private static final int MIN_SPAWN_DISTANCE = 10; // tiles away from the player, when possible
+    private static final int COYOTE_CHANCE = 30; // percent of the monsters that are coyotes
 
     GamePanel gp;
     private final Random rand = new Random();
@@ -69,8 +70,7 @@ public class AssetSetter {
             return false;
         }
 
-        // Generate a random number between 0 and 74: below 10 it's a coyote, otherwise a cactus
-        MonsterType type = rand.nextInt(75) < 10 ? MonsterType.COYOTE : MonsterType.CACTUS;
+        MonsterType type = rand.nextInt(100) < COYOTE_CHANCE ? MonsterType.COYOTE : MonsterType.CACTUS;
 
         Monster monster = new Monster(gp, type);
         monster.worldX = point[0] * gp.tileSize;

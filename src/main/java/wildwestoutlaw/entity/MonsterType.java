@@ -2,7 +2,7 @@ package wildwestoutlaw.entity;
 
 public enum MonsterType {
     CACTUS("cactus", 3, 4, 1, "/mobs/cactus/death animation.png"),
-    COYOTE("coyote", 5, 6, 2, null);
+    COYOTE("coyote", 5, 8, 2, null);
 
     final String folder;
     final int speed;

@@ -19,8 +19,11 @@ import wildwestoutlaw.CollisionChecker;
 
 public class Player extends Entity {
 
-    private static final int SHOT_COOLDOWN = 30; // frames between two shots
+    private static final int SHOT_COOLDOWN = 24; // frames between two shots
+    private static final int SHOT_FRAME_TICKS = 3; // how long each frame of the shooting animation lasts
     private static final int MUZZLE_FLASH_FRAME = 1; // the bullet leaves the gun on this frame of the shooting animation
+    private static final int INVINCIBLE_TIME = 40; // frames the player can't be hurt again after a hit
+    private static final double SHOOTING_SPEED = 0.5; // walking speed while a shot is being fired (so you can't just run and spam)
     private static final int REACH = 16; // how far in front of the player someone can be to talk to them
 
     KeyHandler keyH;
@@ -37,8 +40,9 @@ public class Player extends Entity {
     public boolean invincible = false;
     public int invincibleCounter;
 
-    public Projectile projectile;
     public int shotAvailableCounter = 0;
+    private Direction shotDirection = Direction.DOWN;
+    private double carryX, carryY; // fractions of a pixel left over from the last steps
     public boolean isIdle = true;
     public boolean isShooting = false;
     private boolean bulletFired = false;
@@ -50,7 +54,7 @@ public class Player extends Entity {
 
     private final Animation walkAnimation = new Animation(8, 5, true);
     private final Animation idleAnimation = new Animation(6, 5, true);
-    private final Animation shootAnimation = new Animation(5, 5, false);
+    private final Animation shootAnimation = new Animation(5, SHOT_FRAME_TICKS, false);
 
     public Player (GamePanel gp, KeyHandler keyH) {
 
@@ -96,7 +100,6 @@ public class Player extends Entity {
         coins = 0;
         maxCoins = 3;
 
-        projectile = new Bullet(gp);
     }
 
     // Puts the player back in the state they start a new game in
@@ -113,7 +116,6 @@ public class Player extends Entity {
         invincible = false;
         invincibleCounter = 0;
         shotAvailableCounter = 0;
-        projectile.alive = false;
     }
 
     public void getPlayerImage() {
@@ -204,10 +206,19 @@ public class Player extends Entity {
                 walkAnimation.restart();
             }
 
-            // Diagonal steps are shorter, so walking diagonally isn't faster than walking straight
-            int step = (direction.dx != 0 && direction.dy != 0) ? (int) Math.round(speed / Math.sqrt(2)) : speed;
-            int dx = direction.dx * step;
-            int dy = direction.dy * step;
+            // Half speed while shooting; diagonal steps are shorter, so walking diagonally isn't faster
+            double frameSpeed = isShooting ? speed * SHOOTING_SPEED : speed;
+            if (direction.dx != 0 && direction.dy != 0) {
+                frameSpeed /= Math.sqrt(2);
+            }
+
+            // Positions are whole pixels, so the leftover fraction is carried over to the next frame
+            carryX += direction.dx * frameSpeed;
+            carryY += direction.dy * frameSpeed;
+            int dx = (int) carryX;
+            int dy = (int) carryY;
+            carryX -= dx;
+            carryY -= dy;
 
             // Check monster collision
             int monsterIndex = gp.collisionChecker.hitEntity(this, gp.monster, dx, dy);
@@ -216,14 +227,20 @@ public class Player extends Entity {
             // Move along x and y separately, so walking diagonally into a wall slides along it
             if (canMove(dx, 0)) {
                 worldX += dx;
+            } else {
+                carryX = 0;
             }
             if (canMove(0, dy)) {
                 worldY += dy;
+            } else {
+                carryY = 0;
             }
 
             walkAnimation.update();
         }
         else {
+            carryX = 0;
+            carryY = 0;
             if (!isIdle) {
                 isIdle = true;
                 idleAnimation.restart();
@@ -239,7 +256,7 @@ public class Player extends Entity {
 
         if (invincible == true) {
             invincibleCounter ++;
-            if (invincibleCounter == 20) {
+            if (invincibleCounter == INVINCIBLE_TIME) {
                 invincible = false;
                 invincibleCounter = 0;
             }
@@ -262,7 +279,13 @@ public class Player extends Entity {
             }
         }
 
-        if (keyH.spacePressed == true && !isShooting && projectile.alive == false && shotAvailableCounter == SHOT_COOLDOWN) {
+        // Arrow keys shoot in their direction (even while walking another way), Space shoots where the player faces
+        Direction aim = Direction.of((keyH.aimRight ? 1 : 0) - (keyH.aimLeft ? 1 : 0), (keyH.aimDown ? 1 : 0) - (keyH.aimUp ? 1 : 0));
+        if ((aim != null || keyH.spacePressed == true) && !isShooting && shotAvailableCounter == SHOT_COOLDOWN) {
+            shotDirection = aim != null ? aim : direction;
+            if (isIdle) {
+                direction = shotDirection; // keep facing where you shot
+            }
             isShooting = true;
             bulletFired = false;
             shootAnimation.restart();
@@ -275,11 +298,12 @@ public class Player extends Entity {
 
     // Starts the bullet at the end of the barrel (the bullet sprite is a whole tile with the bullet in the middle)
     private void fireBullet() {
-        Point tip = gunTip(direction);
+        Point tip = gunTip(shotDirection);
         int x = worldX + tip.x * gp.scale - gp.tileSize / 2;
         int y = worldY + tip.y * gp.scale - gp.tileSize / 2;
-        projectile.set(x, y, direction, true, this);
-        gp.projectileList.add(projectile);
+        Bullet bullet = new Bullet(gp);
+        bullet.set(x, y, shotDirection, true, this);
+        gp.projectileList.add(bullet);
         bulletFired = true;
     }
 
@@ -289,7 +313,7 @@ public class Player extends Entity {
         BufferedImage image;
 
         if (isShooting) {
-            image = shootingSprites.get(direction)[shootAnimation.frame()];
+            image = shootingSprites.get(shotDirection)[shootAnimation.frame()];
         } else if (isIdle) {
             image = idleSprites.get(direction)[idleAnimation.frame()];
         } else {
@@ -298,7 +322,7 @@ public class Player extends Entity {
         }
 
         // Blinks for a moment after being hit
-        if (invincible == true && (invincibleCounter / 3) % 2 == 0) {
+        if (invincible == true && (invincibleCounter / 4) % 2 == 0) {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
         }
 

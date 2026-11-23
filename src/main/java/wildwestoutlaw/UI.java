@@ -171,7 +171,7 @@ public class UI {
         y = gp.tileSize * 8;
         g2.drawString(text, x, y);
 
-        text = "SPACE to shoot, ENTER to talk, P to pause.";
+        text = "ARROW KEYS to shoot, ENTER to talk, P to pause.";
         length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
         x = gp.screenWidth / 2 - length / 2;
         y = gp.tileSize * 10;

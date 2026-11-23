@@ -40,7 +40,8 @@ Enjoy your adventure in the wild west!
 | Key | Action |
 | --- | --- |
 | `W` `A` `S` `D` | Move (and navigate menus with `W` / `S`) |
-| `Space` | Shoot |
+| `↑` `↓` `←` `→` | Shoot in that direction (two at once for diagonals), even while walking another way |
+| `Space` | Shoot where you're facing |
 | `Enter` | Talk to characters / confirm menu choices |
 | `P` | Pause |
 | `M` | Sound on / off |
