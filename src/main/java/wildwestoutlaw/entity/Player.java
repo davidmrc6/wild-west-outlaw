@@ -15,18 +15,30 @@ import wildwestoutlaw.GamePanel;
 import wildwestoutlaw.SoundEffect;
 import wildwestoutlaw.GameState;
 import wildwestoutlaw.KeyHandler;
-import wildwestoutlaw.object.OBJ_bullet;
+import wildwestoutlaw.CollisionChecker;
 
 public class Player extends Entity {
 
     private static final int SHOT_COOLDOWN = 30; // frames between two shots
     private static final int MUZZLE_FLASH_FRAME = 1; // the bullet leaves the gun on this frame of the shooting animation
+    private static final int REACH = 16; // how far in front of the player someone can be to talk to them
 
     KeyHandler keyH;
 
     public final int screenX;
     public final int screenY;
 
+    public int reputation;
+    public int maxReputation;
+    public int wanted;
+    public int maxWanted;
+    public int coins;
+    public int maxCoins;
+    public boolean invincible = false;
+    public int invincibleCounter;
+
+    public Projectile projectile;
+    public int shotAvailableCounter = 0;
     public boolean isIdle = true;
     public boolean isShooting = false;
     private boolean bulletFired = false;
@@ -73,7 +85,6 @@ public class Player extends Entity {
 
         speed = 4;
         direction = Direction.DOWN;
-        type = 0;
 
         maxLife = 12;
         life = maxLife;
@@ -87,7 +98,7 @@ public class Player extends Entity {
         coins = 0;
         maxCoins = 3;
 
-        projectile = new OBJ_bullet(gp);
+        projectile = new Bullet(gp);
     }
 
     // Puts the player back in the state they start a new game in
@@ -199,17 +210,12 @@ public class Player extends Entity {
             collisionOn = false;
             gp.collisionChecker.checkTile(this);
 
-            // Check object collision
-            int objIndex = gp.collisionChecker.checkObjectCollision(this, true);
-            pickUpObject(objIndex);
-
             // Check monster collision
             int monsterIndex = gp.collisionChecker.checkEntityCollision(this, gp.monster);
             contactMonster(monsterIndex);
 
-            // Check npc collision
-            int npcIndex = gp.collisionChecker.checkEntityCollision(this, gp.npc);
-            interactNPC(npcIndex);
+            // Check npc collision (they just block the way, talking is done with Enter)
+            gp.collisionChecker.checkEntityCollision(this, gp.npc);
 
             // If collision is false, player can move
             if (collisionOn == false) {
@@ -226,6 +232,10 @@ public class Player extends Entity {
             }
             idleAnimation.update();
         }
+
+        // Check object collision (also when standing still)
+        int objIndex = gp.collisionChecker.checkObjectCollision(this, true);
+        pickUpObject(objIndex);
 
         updateShooting();
 
@@ -319,29 +329,40 @@ public class Player extends Entity {
         g2.drawImage(dust[frame / 2], x, y, 12, 12, null);
     }
 
-    public void interactNPC(int i) {
-
-        if (i != 999) {
-
-            if (gp.npc[i].hasDialogue == true) {
-                gp.gameState = GameState.DIALOGUE;
-                gp.npc[i].speak();
-                gp.playSE(SoundEffect.DIALOGUE);
-            }
-            // Coins only buy reputation until it is maxed out, so it can't overshoot the win condition
-            if (gp.npc[i].doesCollectCoins == true && coins > 0 && reputation < maxReputation) {
-                gp.playSE(SoundEffect.COIN_GIVEN);
-                gp.npc[i].coins += 1;
-                coins --;
-                reputation += 1;
-            }
-
+    // Enter was pressed: talk to (or give a coin to) whoever the player is facing
+    public void interact() {
+        Npc npc = npcInFront();
+        if (npc != null) {
+            npc.interact();
         }
+    }
+
+    // The character right in front of the player, or null
+    public Npc npcInFront() {
+        Rectangle reach = worldHitbox();
+        reach.translate(direction.dx * REACH, direction.dy * REACH);
+        for (Npc npc : gp.npc) {
+            if (npc != null && reach.intersects(npc.worldHitbox())) {
+                return npc;
+            }
+        }
+        return null;
+    }
+
+    // Coins only buy reputation until it is maxed out, so it can't overshoot the win condition
+    public boolean canGiveCoin() {
+        return coins > 0 && reputation < maxReputation;
+    }
+
+    public void giveCoin() {
+        gp.playSE(SoundEffect.COIN_GIVEN);
+        coins --;
+        reputation += 1;
     }
 
     public void pickUpObject(int i) {
 
-        if (i != 999) {
+        if (i != CollisionChecker.NONE) {
 
             if (coins < maxCoins) {
                 gp.playSE(SoundEffect.COIN_PICKUP);
@@ -353,7 +374,7 @@ public class Player extends Entity {
 
     public void contactMonster(int i) {
 
-        if (i != 999) {
+        if (i != CollisionChecker.NONE) {
             takeDamage(gp.monster[i].attack);
         }
 
@@ -371,7 +392,7 @@ public class Player extends Entity {
 
     public void damageMonster(int i, int attack) {
 
-        if (i != 999) {
+        if (i != CollisionChecker.NONE) {
 
             gp.monster[i].life -= attack;
 
@@ -380,7 +401,7 @@ public class Player extends Entity {
             }
 
             if (gp.monster[i].life <= 0){
-                gp.monster[i].dying = true;
+                gp.monster[i].startDying();
             }
 
         }

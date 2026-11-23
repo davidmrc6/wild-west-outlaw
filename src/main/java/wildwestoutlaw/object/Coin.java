@@ -6,9 +6,9 @@ import wildwestoutlaw.Animation;
 import wildwestoutlaw.Assets;
 import wildwestoutlaw.GamePanel;
 
-public class OBJ_coin extends SuperObject {
+public class Coin extends SuperObject {
 
-    public OBJ_coin(GamePanel gp) {
+    public Coin(GamePanel gp) {
         lifespan = 5 * gp.FPS;
         name = "coin";
         images = new BufferedImage[] {

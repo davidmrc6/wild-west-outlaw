@@ -108,6 +108,9 @@ public class KeyHandler implements KeyListener {
                     gp.playSE(SoundEffect.MENU_SELECT);
                     gp.gameState = GameState.PAUSE;
                 }
+                if (code == KeyEvent.VK_ENTER) {
+                    gp.player.interact();
+                }
             }
 
             case PAUSE -> {
@@ -119,7 +122,11 @@ public class KeyHandler implements KeyListener {
 
             case DIALOGUE -> {
                 if (code == KeyEvent.VK_ENTER) {
-                    gp.gameState = GameState.PLAY;
+                    if (gp.talkingTo != null) {
+                        gp.talkingTo.nextLine();
+                    } else {
+                        gp.gameState = GameState.PLAY;
+                    }
                 }
             }
 

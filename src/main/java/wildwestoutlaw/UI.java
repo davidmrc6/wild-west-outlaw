@@ -7,6 +7,8 @@ import java.awt.image.BufferedImage;
 import java.awt.BasicStroke;
 import java.awt.RenderingHints;
 
+import wildwestoutlaw.entity.Npc;
+
 public class UI {
 
     GamePanel gp;
@@ -73,6 +75,7 @@ public class UI {
             drawWantedStars();
             drawReputation();
             drawCoinCounter();
+            drawInteractHint();
         }
         // PAUSE STATE
         if (gp.gameState == GameState.PAUSE) {
@@ -351,6 +354,27 @@ public class UI {
 
         g2.setColor(Color.white);
         g2.drawString(text, x - 4, y - 4);
+    }
+
+    // e.g. "Enter: Talk" above the character the player is facing
+    public void drawInteractHint() {
+
+        Npc npc = gp.player.npcInFront();
+        String hint = npc != null ? npc.interactHint() : null;
+        if (hint == null) {
+            return;
+        }
+
+        g2.setFont(pixeloid.deriveFont(Font.PLAIN, 18F));
+        String text = "Enter: " + hint;
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        int x = npc.screenX() + gp.tileSize / 2 - length / 2;
+        int y = npc.screenY() - 8;
+
+        g2.setColor(Color.black);
+        g2.drawString(text, x + 2, y + 2);
+        g2.setColor(Color.white);
+        g2.drawString(text, x, y);
     }
 
     public void drawDialogueScreen() {

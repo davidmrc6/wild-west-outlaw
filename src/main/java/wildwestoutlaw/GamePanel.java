@@ -17,10 +17,12 @@ import javax.swing.JPanel;
 
 import wildwestoutlaw.ai.PathFinder;
 import wildwestoutlaw.entity.Entity;
+import wildwestoutlaw.entity.Monster;
+import wildwestoutlaw.entity.Npc;
 import wildwestoutlaw.entity.Player;
 import wildwestoutlaw.object.DamageEffect;
 import wildwestoutlaw.object.Explosion;
-import wildwestoutlaw.object.OBJ_coin;
+import wildwestoutlaw.object.Coin;
 import wildwestoutlaw.object.SuperObject;
 import wildwestoutlaw.tile.TileManager;
 
@@ -58,8 +60,9 @@ public class GamePanel extends JPanel implements Runnable {
     int worldX, worldY;
     public CollisionChecker collisionChecker = new CollisionChecker(this);
     public Player player = new Player(this, keyH);
-    public Entity npc[] = new Entity[10];
-    public Entity monster[] = new Entity[25];
+    public Npc npc[] = new Npc[10];
+    public Monster monster[] = new Monster[25];
+    public Npc talkingTo; // who the player is in a conversation with
     public UI ui = new UI(this);
     public PathFinder pathFinder = new PathFinder(this);
     public WaveSpawner spawner = new WaveSpawner(this);
@@ -110,6 +113,7 @@ public class GamePanel extends JPanel implements Runnable {
         objectList.clear();
         explosionList.clear();
         damageEffectList.clear();
+        talkingTo = null;
         ui.commandNum = 0;
         ui.hasGameOverSoundPlayed = false;
         ui.hasGameWonSoundPlayed = false;
@@ -194,13 +198,8 @@ public class GamePanel extends JPanel implements Runnable {
                     worldX = monster[i].worldX;
                     worldY = monster[i].worldY;
 
-                    // A monster that was killed dies here, even if it is off-screen
-                    if (monster[i].dying == true) {
-                        monster[i].dying = false;
-                        monster[i].alive = false;
-                    }
-
-                    if (monster[i].alive == true && monster[i].dying == false) {
+                    // Also counts down a killed monster's death, even if it is off-screen
+                    if (monster[i].alive == true) {
                         monster[i].update();
                     }
                     if (monster[i].alive == true && monster[i].damaged == true) {
@@ -215,7 +214,7 @@ public class GamePanel extends JPanel implements Runnable {
                         explosionList.add(new Explosion(this, worldX, worldY));
                         playSE(SoundEffect.MONSTER_DEATH);
 
-                        OBJ_coin newCoin = new OBJ_coin(this);
+                        Coin newCoin = new Coin(this);
                         newCoin.worldX = worldX;
                         newCoin.worldY = worldY;
 
@@ -241,8 +240,8 @@ public class GamePanel extends JPanel implements Runnable {
             List<SuperObject> toRemove = new ArrayList<>();
             for (SuperObject object : objectList) {
                 object.updateFrame();
-                if (object instanceof OBJ_coin) {
-                    OBJ_coin coin = (OBJ_coin) object;
+                if (object instanceof Coin) {
+                    Coin coin = (Coin) object;
                     coin.lifespan--;
                     if (coin.lifespan <= 0) {
                         toRemove.add(coin);

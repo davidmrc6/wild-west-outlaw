@@ -5,8 +5,11 @@ import wildwestoutlaw.tile.Tile;
 
 public class CollisionChecker {
 
+    // Returned when nothing was hit
+    public static final int NONE = -1;
+
     GamePanel gp;
-    
+
     public CollisionChecker(GamePanel gp) {
         this.gp = gp;
     }
@@ -108,11 +111,11 @@ public class CollisionChecker {
 
     public int checkEntityCollision(Entity entity, Entity[] target) {
 
-        int index = 999;
+        int index = NONE;
 
         for (int i = 0; i < target.length; i++) {
 
-            if (target[i] != null) {
+            if (target[i] != null && target[i].isSolid()) {
 
                 entity.solidArea.x = entity.worldX + entity.solidArea.x;
                 entity.solidArea.y = entity.worldY + entity.solidArea.y;
@@ -170,7 +173,7 @@ public class CollisionChecker {
 
     public int checkObjectCollision(Entity entity, boolean player) {
 
-        int index = 999;
+        int index = NONE;
 
         for (int i = 0; i < gp.objectList.size(); i++) {
 

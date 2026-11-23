@@ -53,7 +53,7 @@ Please be aware of the following known issues in the game:
 
 Here are some tips to enhance your gaming experience:
 
-- To progress in the game, make sure to walk into other characters and press the `Enter` key continuously to initiate conversations or interactions.
+- To progress in the game, walk up to other characters and press the `Enter` key to initiate conversations or interactions (keep pressing it to go through a conversation).
 - Start your adventure by talking to the bartender, who can provide valuable information and quests to kickstart your journey as an outlaw in the wild west.
 
 ## Learning Topics
