@@ -39,9 +39,6 @@ public class Projectile extends Entity {
                 alive = false;
             }
         }
-        if (user != gp.player) {
-
-        }
 
         switch (direction) {
             case "up": worldY -= speed; break;
